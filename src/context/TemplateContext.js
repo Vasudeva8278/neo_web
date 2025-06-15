@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { getTemplates } from '../services/templateApi';
 
 export const TemplateContext = createContext();

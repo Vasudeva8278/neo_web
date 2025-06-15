@@ -44,7 +44,7 @@ const Navigation = () => {
   };
 
   const gotoHome = () => {
-    navigate("/projects");
+    navigate("/Home");
   };
 
   const handleProjectsTemplates = (project) => {
@@ -89,8 +89,8 @@ const Navigation = () => {
   };
 
   return (
-    <div className='flex h-full'>
-      <div className='relative border-r border-gray-300 flex flex-col w-20 bg-gray-100'>
+    <div className='flex h-full fixed top-0 left-0 w-ful mt-16'>
+      <div className='relative border-r border-gray-300 flex flex-col w-20 bg-gray-100 h-full'>
         {/* User Profile Section */}
         <div className='flex flex-col items-center w-full py-4 border-b border-gray-300'>
           <img
@@ -101,7 +101,7 @@ const Navigation = () => {
           />
           <div className='text-center text-gray-800'>
             <div className='text-sm font-semibold truncate w-full px-1'>{user.name}</div>
-            <div className='text-xs text-gray-600'>{user.role}</div>
+           {/* { <div className='text-xs text-gray-600'>{user.role}</div>} */}
           </div>
           <MdArrowDropDown className='w-6 h-6 mt-2 text-gray-600' />
         </div>
@@ -109,7 +109,7 @@ const Navigation = () => {
         {/* Main Navigation Items */}
         <nav className='py-4 flex flex-col items-center space-y-4'>
           <ul className='w-full flex flex-col items-center space-y-2'>
-            <NavItem to="/projects" onClick={gotoHome} icon={GoHome} label="Home" />
+            <NavItem to="/Home" icon={GoHome} label="Home" />
 
             <li className="w-full flex flex-col items-center">
                 <div
@@ -177,9 +177,7 @@ const Navigation = () => {
           />
         </NeoModal>
       </div>
-      <div className='flex-1'>
-        <Inbox />
-      </div>
+     
     </div>
   );
 };

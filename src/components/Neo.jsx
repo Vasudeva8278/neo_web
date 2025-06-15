@@ -280,40 +280,6 @@ const Neo = () => {
 
   return (
     <div className='flex ml-12'>
-      <div className='hidden flex flex-col items-start border-r border-gray-200'>
-        <div className='flex items-center w-64 h-20 border-b border-gray-300'>
-          <img
-            src={photo}
-            alt='Profile'
-            className='w-12 h-12 rounded-full ml-2'
-          />
-          <div className='flex flex-col ml-4'>
-            <div className='text-sm font-semibold'>Kevin Rangel</div>
-            <div className='text-xs'>Admin</div>
-          </div>
-          <MdArrowDropDown className='w-6 h-6 ml-4' />
-        </div>
-        <div className='mt-4 w-64 px-3'>
-          <div className='flex items-center w-full pl-3 hover:bg-blue-100 rounded-lg'>
-            <GoHome className='w-5 h-5' />
-            <div className='ml-2 text-sm font-semibold py-2'>Home</div>
-          </div>
-          <div className='flex items-center w-full pl-3 mt-2 hover:bg-blue-100 rounded-lg'>
-            <FaRegFolderOpen className='w-5 h-5' />
-            <div
-              className='ml-2 text-sm text-gray-700 py-2'
-              onClick={handleProjects}
-            >
-              Projects
-            </div>
-          </div>
-          <div className='flex items-center w-full pl-3 mt-2 hover:bg-blue-100 rounded-lg'>
-            <RiLayout4Line className='w-5 h-5' />
-            <div className='ml-2 text-sm text-gray-700  py-2'>Template</div>
-          </div>
-        </div>
-      </div>
-
       <div className='flex flex-col w-full m-2'>
         <div className='flex text-gray-400 text-xs p-3'>All Templates </div>
         <SearchHeader />
@@ -368,7 +334,7 @@ const Neo = () => {
                   overflowY: "auto",
                   border: "1px solid #ccc",
                   marginTop: "20px",
-                  padding: "20px",
+                  padding: "30px",
                   position: "relative",
                   display: "none",
                 }}
@@ -377,12 +343,13 @@ const Neo = () => {
             </div>
           </div>
         </div>
-        <div className='flex flex-col p-4 space-y-8'>
-          <div className='w-full max-w-5xl'>
-            <h2 className='text-2xl font-semibold mb-4 text-left'>
+        <div className='flex flex-col p-4 space-y-8 w-full'
+        >
+          <div className='w-full max-w-7xl'>
+            <h2 className='text-2xl font-semibold mb-4 text-left w-full border-b-2 border-black'>
               Saved Templates
             </h2>
-            <div className='flex justify-center'>
+            <div className='flex justify-center w-full'>
               {loading && <div>Loading...</div>}
               <TemplateCards
                 documents={documents}
@@ -406,13 +373,13 @@ const Neo = () => {
             <div className='flex justify-center space-x-4'>
               {loading && <div>Loading...</div>}
               {error && <div>{error}</div>}
-              <TemplateCards
+            {/*   <TemplateCards
                 documents={docTemplates}
                 template={true}
                 handleDeleteTemplate={handleDeleteDocument}
                 handleDownload={handleDocumentDownload}
                 className='border p-4 rounded-lg shadow-md'
-              />
+              /> */}
             </div>
           </div>
         </div>

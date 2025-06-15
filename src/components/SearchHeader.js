@@ -34,11 +34,11 @@ const SearchHeader = ({ projectId, hasProject = false }) => {
           <input
             type="text"
             placeholder="Search templates or documents"
-            className="w-full p-3 pl-10 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition duration-200"
+            className="w-full p-3 pl-10 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition duration-200 ml-6"
             aria-label="Search templates or documents"
           />
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <FaSearch className="text-gray-400 w-5 h-5" />
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none ">
+            <FaSearch className="text-gray-400 w-5 h-5 ml-4" />
           </div>
         </div>
       </div>

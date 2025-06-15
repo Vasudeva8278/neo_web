@@ -22,6 +22,7 @@
     "html-docx-js": "0.3.1",
     "html-react-parser": "^5.2.5",
     "html-to-docx": "1.2.2",
+    "lucide-react": "^0.515.0",
     "npm-run-all": "^4.1.5",
     "pizzip": "^3.1.7",
     "react": "^18.2.0",
@@ -78,6 +79,7 @@
     "react-app-rewired": "^2.2.1",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
+    "typescript": "^4.9.5",
     "url": "^0.11.3"
   }
 }

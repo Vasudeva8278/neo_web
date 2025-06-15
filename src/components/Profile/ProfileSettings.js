@@ -108,9 +108,7 @@ const ProfileSettings = () => {
 
       // Append form data fields
       Object.entries(formData).forEach(([key, value]) => {
-        console.log(key, " : : ", value);
         if (key === "profilePic" && value instanceof File) {
-          console.log(key, " ** : ", value);
           formDataToSend.append(key, value); // Append file
         } else {
           formDataToSend.append(key, value); // Append other data

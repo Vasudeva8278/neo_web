@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TemplateContext } from '../../context/TemplateContext';
-
+import { SlOptionsVertical } from "react-icons/sl";
 const Card = ({ docObj, documentId, name, thumbnail, content, handleDelete, handleDownload, template, projectId }) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const [deleteTemplateModal, setDeleteTemplateModal] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleView = (docId) => {
     if (template) {
@@ -97,53 +98,76 @@ const Card = ({ docObj, documentId, name, thumbnail, content, handleDelete, hand
   );
 
   return (
-    // Main card container with enhanced shadow, border, and rounded corners
-    <div className="relative border border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between bg-white" style={{ width: '200px', height: '350px' }}>
+    <div 
+      className="relative bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-300 flex flex-col group cursor-pointer "
+      style={{ width: '100%', minHeight: '200px' }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => handleView(documentId)}
+    >
       {/* Top right menu button */}
-      <div className="absolute top-2 right-2 z-10" ref={menuRef}>
+      <div className="absolute top-3 right-3 z-10 w-full" ref={menuRef}>
         <button
-          className="p-2 text-gray-500 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          onClick={toggleMenu}
+          className="p-1.5 text-gray-400 rounded-md hover:bg-gray-100 hover:text-gray-600 focus:outline-none transition-all duration-200 ml-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleMenu();
+          }}
         >
-          <EllipsisVIcon />
+          <SlOptionsVertical />
         </button>
         {menuOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20 py-1 text-sm">
+          <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-20 py-1 text-sm">
             {!template && (
               <button
-                className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
-                onClick={() => handleCreateDocuments(documentId)}
+                className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCreateDocuments(documentId);
+                }}
               >
                 <FileAltIcon /> Create Document
               </button>
             )}
             {template && (
               <button
-                className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
-                onClick={() => handleView(documentId)}
+                className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleView(documentId);
+                }}
               >
                 <FileAltIcon /> View
               </button>
             )}
             {!template && (
               <button
-                className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
-                onClick={() => handleEdit(documentId)}
+                className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEdit(documentId);
+                }}
               >
                 <EditIcon /> Edit
               </button>
             )}
             {template && (
               <button
-                className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
-                onClick={() => handleDownloadDocument(docObj)}
+                className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownloadDocument(docObj);
+                }}
               >
                 <DownloadIcon /> Download
               </button>
             )}
             <button
-              className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-red-50"
-              onClick={() => promptForDeletion(documentId)}
+              className="flex items-center w-full px-3 py-2 text-red-500 hover:bg-red-50 transition-colors duration-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                promptForDeletion(documentId);
+              }}
             >
               <TrashIcon /> Delete
             </button>
@@ -151,38 +175,32 @@ const Card = ({ docObj, documentId, name, thumbnail, content, handleDelete, hand
         )}
       </div>
 
-      {/* Thumbnail/Image Display Area */}
-      <div className="flex-1 p-4 pb-0 flex justify-center items-center">
-        <div
-          className="w-full bg-white border border-gray-200 rounded-lg overflow-hidden"
-          style={{
-            height: '250px',
-            objectFit: 'contain',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          {/* Using a placeholder image if thumbnail is not available */}
-          {thumbnail ? (
-            <img
-              src={`data:image/png;base64,${thumbnail}`}
-              alt={name}
-              className="w-full h-full object-contain rounded-lg"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* File Icon Section */}
+       <div className="flex items-center justify-center pt-8 pb-4">
+         <div className="relative">
+           {/* File Icon */}
+           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" className="text-blue-500">
+             <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="currentColor"/>
+             <path d="M14 2V8H20" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+           </svg>
+           {/* Document Count Badge */}
+           <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+             {docObj?.documentCount || '0'}
+           </div>
+         </div>
+       </div>
 
-      {/* Document Name/Title */}
-      <div className="p-4 pt-2">
-        <div className="text-center font-semibold text-gray-800 text-base truncate">{name}</div>
+      {/* Content section */}
+      <div className="flex-1 px-4 pb-4 text-center">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 truncate">
+          {name}
+        </h3>
+        <p className="text-sm text-gray-500">
+          {docObj?.documentCount || '0'} Documents
+        </p>
+        <p className="text-xs text-gray-400 mt-1">
+          Last updated: {docObj?.lastUpdated || '6/15/2025'}
+        </p>
       </div>
 
       {/* Delete Confirmation Modal (inlined) */}
@@ -212,29 +230,51 @@ const Card = ({ docObj, documentId, name, thumbnail, content, handleDelete, hand
   );
 };
 
-const TemplateCards = ({ handleDeleteTemplate, handleDownload, template = false, projectId }) => {
-  const templateContext = useContext(TemplateContext);
-  const templates = templateContext?.templates || [];
+const TemplateCards = ({ template, projectId }) => {
+  const { templates } = useContext(TemplateContext);
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const handleDeleteTemplate = (templateId) => {
+    // Add delete logic here
+    console.log('Deleting template:', templateId);
+  };
+
+  const handleDownload = (template) => {
+    // Add download logic here
+    console.log('Downloading template:', template);
+  };
 
   if (!templates) {
     return <div>Loading templates...</div>;
   }
 
   return (
-    <div id="cardContainer" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-4 justify-items-center h-full overflow-y-auto">
-      {templates.map((doc) => (
-        <Card
-          docObj={doc}
-          key={doc._id}
-          documentId={doc._id}
-          name={doc.fileName}
-          thumbnail={doc.thumbnail}
-          handleDelete={handleDeleteTemplate}
-          handleDownload={handleDownload}
-          template={template}
-          projectId={projectId}
-        />
-      ))}
+    <div 
+      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 xl:grid-cols-4 p-6 bg-gray-50 h-full overflow-y-auto w-full"
+      style={{ gap: '16px' }}
+    >
+      {templates
+        .filter((doc, index, self) => 
+          // Remove duplicates based on document ID
+          index === self.findIndex(item => item._id === doc._id)
+        )
+        .map((doc) => (
+          <Card
+            key={doc._id}
+            docObj={doc}
+            documentId={doc._id}
+            name={doc.fileName}
+            thumbnail={doc.thumbnail}
+            content={doc.content}
+            handleDelete={handleDeleteTemplate}
+            handleDownload={handleDownload}
+            template={template}
+            projectId={projectId}
+          />
+        ))
+      }
     </div>
   );
 };
