@@ -36,7 +36,7 @@ const Home = () => {
           <Header toggleNavigation={toggleNavigation} className="sticky top-0 z-10" />
           <div className="flex-1 flex mt-2 overflow-auto">
             {isNavigationVisible && <Navigation />}
-            <div className="flex-1 ml-20 mt-1">
+            <div className="flex-1 ml-12 lg:ml-20 mt-1 px-2 sm:px-4 lg:px-0">
               <Routes>
                 {/* Dashboard */}
                 <Route path="/" element={<Dashboard />} />

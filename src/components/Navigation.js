@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
@@ -27,6 +27,15 @@ const Navigation = () => {
   const location = useLocation();
   const { user, logout } = useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const isActive = (path) => location.pathname === path;
   const isProjectActive = (projectId) => location.pathname === `/projects/${projectId}`;
@@ -70,45 +79,60 @@ const Navigation = () => {
       : isActive(to) || (to === "/projects" && location.pathname.startsWith("/projects/") && !projectId);
 
     return (
-      <li className="w-full flex justify-center"> {/* Centering within the 20px width */}
+      <li className="w-full flex justify-center"> {/* Centering within the width */}
         <div
           onClick={onClick || (() => navigate(to))}
           className={`
-            flex flex-col items-center p-2 rounded-lg cursor-pointer w-full
-            hover:bg-blue-100 transition duration-200
+            flex flex-col items-center rounded-lg cursor-pointer w-full transition duration-200
+            hover:bg-blue-100 
             ${active ? "shadow-md shadow-blue-300 bg-blue-50" : ""}
+            ${isMobile ? 'p-0.5' : 'p-2'}
           `}
+          title={isMobile ? label : ''} // Show tooltip on mobile
         >
-          <Icon className={`w-5 h-5 mb-1 ${active ? "text-blue-600" : "text-gray-700"}`} />
-          <span className={`text-xs font-semibold text-center ${active ? "text-blue-600" : "text-gray-700"}`}>
-            {label}
-          </span>
+          <Icon className={`${isMobile ? 'w-3 h-3' : 'w-5 h-5'} ${!isMobile ? 'mb-1' : ''} ${active ? "text-blue-600" : "text-gray-700"}`} />
+          {!isMobile && (
+            <span className={`text-xs font-semibold text-center ${active ? "text-blue-600" : "text-gray-700"}`}>
+              {label}
+            </span>
+          )}
         </div>
       </li>
     );
   };
 
   return (
-    <div className='flex h-full fixed top-0 left-0 w-ful mt-16'>
-      <div className='relative border-r border-gray-300 flex flex-col w-20 bg-gray-100 h-full'>
+    <div className={`flex h-full fixed top-0 left-0 w-full mt-16 ${isMobile ? 'z-50' : ''}`}>
+      <div className={`relative border-r border-gray-300 flex flex-col bg-gray-100 h-full transition-all duration-300 ${
+        isMobile ? 'w-12' : 'w-20'
+      }`}>
         {/* User Profile Section */}
-        <div className='flex flex-col items-center w-full py-4 border-b border-gray-300'>
+        <div className={`flex flex-col items-center w-full border-b border-gray-300 ${
+          isMobile ? 'py-2' : 'py-4'
+        }`}>
           <img
             src={user?.profilePic || photo}
             alt='Profile'
-            className='w-12 h-12 rounded-full mb-2 cursor-pointer border-2 border-transparent hover:border-blue-400 transition-colors duration-200'
+            className={`rounded-full mb-1 cursor-pointer border-2 border-transparent hover:border-blue-400 transition-colors duration-200 ${
+              isMobile ? 'w-6 h-6' : 'w-12 h-12'
+            }`}
             onClick={handleProfileClick}
           />
-          <div className='text-center text-gray-800'>
-            <div className='text-sm font-semibold truncate w-full px-1'>{user.name}</div>
-           {/* { <div className='text-xs text-gray-600'>{user.role}</div>} */}
-          </div>
-          <MdArrowDropDown className='w-6 h-6 mt-2 text-gray-600' />
+          {!isMobile && (
+            <div className='text-center text-gray-800'>
+              <div className='text-sm font-semibold truncate w-full px-1'>{user.name}</div>
+            </div>
+          )}
+          {!isMobile && <MdArrowDropDown className='w-6 h-6 mt-2 text-gray-600' />}
         </div>
 
         {/* Main Navigation Items */}
-        <nav className='py-4 flex flex-col items-center space-y-4'>
-          <ul className='w-full flex flex-col items-center space-y-2'>
+        <nav className={`flex flex-col items-center ${
+          isMobile ? 'py-2 space-y-2' : 'py-4 space-y-4'
+        }`}>
+          <ul className={`w-full flex flex-col items-center ${
+            isMobile ? 'space-y-1' : 'space-y-2'
+          }`}>
             <NavItem to="/Home" icon={GoHome} label="Home" />
 
             <li className="w-full flex flex-col items-center">
@@ -154,7 +178,9 @@ const Navigation = () => {
         </nav>
 
         {/* Logout Section at the bottom */}
-        <div className='w-full py-4 border-t border-gray-300 flex justify-center'>
+        <div className={`w-full border-t border-gray-300 flex justify-center ${
+          isMobile ? 'py-2' : 'py-4'
+        }`}>
           <div
             onClick={() => {
               logout();

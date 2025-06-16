@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Responsiveness Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .pass { background: #d4edda; color: #155724; }
+        .fail { background: #f8d7da; color: #721c24; }
+        .manual { background: #fff3cd; color: #856404; }
+        
+        @media (max-width: 640px) {
+            body { margin: 10px; }
+            .test-section { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Neo Web App - Mobile Responsiveness Test</h1>
+    
+    <div class="test-section">
+        <h2>Navigation Tests</h2>
+        <div class="test-item">
+            <strong>Test 1:</strong> Navigation width on mobile (should be 48px)
+            <span class="status manual">MANUAL TEST</span>
+            <p>Open developer tools, set viewport to 375px width, check navigation sidebar width.</p>
+        </div>
+        <div class="test-item">
+            <strong>Test 2:</strong> Profile image size on mobile (should be 24px)
+            <span class="status manual">MANUAL TEST</span>
+            <p>Verify profile image in navigation is smaller on mobile devices.</p>
+        </div>
+        <div class="test-item">
+            <strong>Test 3:</strong> Navigation icons size on mobile (should be 12px)
+            <span class="status manual">MANUAL TEST</span>
+            <p>Check that navigation icons are appropriately sized for mobile.</p>
+        </div>
+        <div class="test-item">
+            <strong>Test 4:</strong> Navigation text labels hidden on mobile
+            <span class="status manual">MANUAL TEST</span>
+            <p>Verify that text labels are hidden on mobile, only icons visible.</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Layout Tests</h2>
+        <div class="test-item">
+            <strong>Test 5:</strong> Content area margin adjustment (should be ml-12 on mobile)
+            <span class="status manual">MANUAL TEST</span>
+            <p>Check that main content area has proper left margin on mobile.</p>
+        </div>
+        <div class="test-item">
+            <strong>Test 6:</strong> Template cards responsive grid
+            <span class="status manual">MANUAL TEST</span>
+            <p>Verify template cards display in single column on mobile.</p>
+        </div>
+        <div class="test-item">
+            <strong>Test 7:</strong> Mobile padding and spacing
+            <span class="status manual">MANUAL TEST</span>
+            <p>Check that components have appropriate padding on mobile devices.</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Responsive Breakpoints</h2>
+        <div class="test-item">
+            <strong>Test 8:</strong> Mobile breakpoint (≤640px)
+            <span class="status manual">MANUAL TEST</span>
+            <p>Test layout at 320px, 375px, 414px, and 640px widths.</p>
+        </div>
+        <div class="test-item">
+            <strong>Test 9:</strong> Tablet breakpoint (641px-1024px)
+            <span class="status manual">MANUAL TEST</span>
+            <p>Test layout at 768px and 1024px widths.</p>
+        </div>
+        <div class="test-item">
+            <strong>Test 10:</strong> Desktop breakpoint (>1024px)
+            <span class="status manual">MANUAL TEST</span>
+            <p>Test layout at 1280px and 1920px widths.</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Touch and Interaction Tests</h2>
+        <div class="test-item">
+            <strong>Test 11:</strong> Touch target sizes (minimum 44px)
+            <span class="status manual">MANUAL TEST</span>
+            <p>Verify all interactive elements meet minimum touch target size.</p>
+        </div>
+        <div class="test-item">
+            <strong>Test 12:</strong> Navigation tooltips on mobile
+            <span class="status manual">MANUAL TEST</span>
+            <p>Check that navigation items show tooltips when hovered on mobile.</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Performance Tests</h2>
+        <div class="test-item">
+            <strong>Test 13:</strong> Mobile CSS loading
+            <span class="status manual">MANUAL TEST</span>
+            <p>Verify mobile.css is loaded and applied correctly.</p>
+        </div>
+        <div class="test-item">
+            <strong>Test 14:</strong> Responsive transitions
+            <span class="status manual">MANUAL TEST</span>
+            <p>Check smooth transitions when resizing browser window.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Simple viewport size display
+        function updateViewportInfo() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const info = document.getElementById('viewport-info') || document.createElement('div');
+            info.id = 'viewport-info';
+            info.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #333; color: white; padding: 10px; border-radius: 4px; font-size: 12px; z-index: 1000;';
+            info.textContent = `Viewport: ${width}x${height}px`;
+            if (!document.getElementById('viewport-info')) {
+                document.body.appendChild(info);
+            }
+        }
+        
+        updateViewportInfo();
+        window.addEventListener('resize', updateViewportInfo);
+        
+        // Add test result functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const testItems = document.querySelectorAll('.test-item');
+            testItems.forEach(item => {
+                const button = document.createElement('button');
+                button.textContent = 'Mark as Tested';
+                button.style.cssText = 'margin-left: 10px; padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;';
+                button.onclick = function() {
+                    const status = item.querySelector('.status');
+                    status.className = 'status pass';
+                    status.textContent = 'TESTED';
+                    button.style.display = 'none';
+                };
+                item.appendChild(button);
+            });
+        });
+    </script>
+</body>
+</html>

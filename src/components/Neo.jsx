@@ -343,10 +343,10 @@ const Neo = () => {
             </div>
           </div>
         </div>
-        <div className='flex flex-col p-4 space-y-8 w-full'
+        <div className='flex flex-col p-2 sm:p-4 space-y-4 sm:space-y-8 w-full'
         >
           <div className='w-full max-w-7xl'>
-            <h2 className='text-2xl font-semibold mb-4 text-left w-full border-b-2 border-black'>
+            <h2 className='text-lg sm:text-xl lg:text-2xl font-semibold mb-2 sm:mb-4 text-left w-full border-b-2 border-black'>
               Saved Templates
             </h2>
             <div className='flex justify-center w-full'>

@@ -47,6 +47,11 @@
     "spa": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
+    "test:mobile": "node run-mobile-tests.js",
+    "test:mobile:headed": "node run-mobile-tests.js --headed",
+    "test:mobile:ui": "node run-mobile-tests.js --ui",
+    "test:playwright": "npx playwright test",
+    "test:playwright:report": "npx playwright show-report",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
