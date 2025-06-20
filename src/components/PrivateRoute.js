@@ -6,7 +6,7 @@ const PrivateRoute = ({ children, allowedRoles, requiredFeature }) => {
   const { user } = useContext(AuthContext);
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/dashboard" />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {

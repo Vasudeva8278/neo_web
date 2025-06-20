@@ -4,7 +4,7 @@ import { ProjectProvider } from "../../context/ProjectContext";
 import TemplateProvider from "../../context/TemplateContext";
 import Header from "../Header";
 import Navigation from "../Navigation";
-import LandingPage from "../../pages/LandingPage.tsx";
+import LandingPage from "../../pages/LandingPage";
 
 // Import pages
 import Dashboard from "../../pages/Dashboard";
