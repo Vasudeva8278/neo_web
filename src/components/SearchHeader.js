@@ -5,94 +5,116 @@ import GenerateDocument from './GenerateDocument';
 import { FaMagic, FaSearch, FaPenNib } from "react-icons/fa";
 import bannerImage from "../Assets/banner2.png";
 
+const MOBILE_MAX_WIDTH = 425;
+
 const SearchHeader = ({ projectId, hasProject = false }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [displayPage, setDisplayPage] = useState("");
   const [selectedProject, setSelectedProject] = useState(projectId || '');
 
-  const handleDesignTemplates = () => {
-    setDisplayPage('designTemplates');
-    setIsModalOpen(true);
-  };
-
-  const handleGenerateDocs = () => {
-    setDisplayPage('generateDocs');
-    setIsModalOpen(true);
-  };
-
   useEffect(() => {
-    if (projectId) {
-      setSelectedProject(projectId);
-    }
+    if (projectId) setSelectedProject(projectId);
   }, [projectId]);
 
+  const openModal = (page) => {
+    setDisplayPage(page);
+    setIsModalOpen(true);
+  };
+
   return (
-    <div className="w-full px-4 md:px-8 py-6 bg-gray-50">
-      {/* Search input */}
-      <div className="max-w-3xl mx-auto mb-6">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search templates or documents"
-            className="w-full p-3 pl-10 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition duration-200 ml-6"
-            aria-label="Search templates or documents"
-          />
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none ">
-            <FaSearch className="text-gray-400 w-5 h-5 ml-4" />
+    <>
+    <div className="flex flex-col items-center w-full" style={{ minWidth: MOBILE_MAX_WIDTH }}>
+      <div className="w-full shadow-md">
+        {/* Search Input */}
+        <div className="p-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search templates or documents"
+              className="w-full p-3 pl-12 rounded-lg border border-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+              aria-label="Search templates or documents"
+            />
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <FaSearch className="text-gray-400 w-5 h-5" />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Banner with overlay content */}
-      <div className="relative max-w-7xl mx-auto mb-8">
-        <div
-          className="h-48 md:h-64 rounded-xl border-4 border-white overflow-hidden shadow-lg"
-          style={{
-            backgroundImage: `url(${bannerImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          <div className="h-full flex flex-col justify-center px-6 bg-black bg-opacity-40 rounded-xl">
-            <h1 className="text-3xl md:text-4xl font-semibold text-white leading-tight">
-              Revolutionize Document Management<br />
-              <span className="text-teal-300 font-semibold">
-                with Automation
-              </span>
-            </h1>
+        {/* Banner */}
+        <div className="relative mb-3 px-4">
+          <div
+            className="h-28 rounded-lg overflow-hidden shadow-md border-4"
+            style={{
+              backgroundImage: `url(${bannerImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div className="h-full flex flex-col justify-center px-4 bg-black bg-opacity-50">
+              <h1 className="text-xl sm:text-2xl font-semibold text-white">
+                Revolutionize Document Management<br />
+                <span className="text-teal-300">with Automation</span>
+              </h1>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Action buttons */}
-      <div className="max-w-7xl mx-auto flex justify-end px-4 md:px-8 mb-8">
-        <div className="flex gap-4 flex-wrap justify-end">
-          <button
-            onClick={handleDesignTemplates}
-            className="flex items-center bg-white text-blue-600 font-medium py-2 px-4 rounded-lg shadow-md hover:bg-blue-50 active:scale-95 transition duration-150"
-          >
-            <FaPenNib className="mr-2" />
-            Design Template
-          </button>
-          <button
-            onClick={handleGenerateDocs}
-            className="flex items-center bg-white text-green-600 font-medium py-2 px-4 rounded-lg shadow-md hover:bg-green-50 active:scale-95 transition duration-150"
-          >
-            <FaMagic className="mr-2" />
-            Generate Documents
-          </button>
-        </div>
-      </div>
+        {/* Action Buttons */}
+       
 
-      {/* Modal for Templates/Docs */}
-      <NeoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        {displayPage === 'designTemplates' ? (
-          <DesignTemplate onClose={() => setIsModalOpen(false)} value={selectedProject} hasProject={hasProject} />
-        ) : (
-          <GenerateDocument onClose={() => setIsModalOpen(false)} value={selectedProject} hasProject={hasProject} />
-        )}
-      </NeoModal>
+        {/* Modal */}
+
+
+        <NeoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <React.Suspense fallback={<div className="p-4">Loading...</div>}>
+            {(() => {
+              try {
+                if (displayPage === 'designTemplates') {
+                  return (
+                    <DesignTemplate
+                      onClose={() => setIsModalOpen(false)}
+                      value={selectedProject}
+                      hasProject={hasProject}
+                    />
+                  );
+                }
+                if (displayPage === 'generateDocs') {
+                  return (
+                    <GenerateDocument
+                      onClose={() => setIsModalOpen(false)}
+                      value={selectedProject}
+                      hasProject={hasProject}
+                    />
+                  );
+                }
+                return <div className="p-4 text-gray-500">No content selected.</div>;
+              } catch (err) {
+                console.error('Error rendering modal content:', err);
+                return <div className="p-4 text-red-500">An error occurred while loading the modal content.</div>;
+              }
+            })()}
+          </React.Suspense>
+        </NeoModal>
+      </div>
+      
     </div>
+    <div className="flex flex-row sm:flex-row justify-end gap-3 px-4 pb-4 mt-4">
+          <button
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition duration-200 font-semibold w-full sm:w-60 cursor-pointer"
+            onClick={() => openModal('designTemplates')}
+          >
+            <FaPenNib className="w-5 h-5" />
+            <span>Design Template</span>
+          </button>
+          <button
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition duration-200 font-semibold w-full sm:w-60 cursor-pointer"
+            onClick={() => openModal('generateDocs')}
+          >
+            <FaMagic className="w-5 h-5" />
+            <span>Generate Documents</span>
+          </button>
+        </div>
+    </>
   );
 };
 

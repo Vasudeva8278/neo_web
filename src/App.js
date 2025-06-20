@@ -16,6 +16,7 @@ import NotAuthorized from "./components/NotAuthorized";
 import Organizations from "./components/Organizations";
 import Home from "./components/Home";
 import PrivateRoute from "./components/PrivateRoute";
+import GoogleAuthCallback from './components/Auth/GoogleAuthCallback';
 
 const App = () => {
   return (
@@ -88,6 +89,7 @@ const App = () => {
                 </PrivateRoute>
               }
             />
+            <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
           </Routes>
         </div>
       </Router>

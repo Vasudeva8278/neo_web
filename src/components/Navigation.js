@@ -156,12 +156,7 @@ const Navigation = () => {
                 >
                     <IoIosAddCircleOutline className='w-5 h-5 text-gray-600 hover:text-blue-600' />
                 </div>
-            </li>
-
-
-
-
-            <NavItem to="/clients" onClick={handleClients} icon={HiOutlineUserGroup} label="Clients" />
+            </li>            <NavItem to="/clients" onClick={handleClients} icon={HiOutlineUserGroup} label="Clients" />
             <NavItem to="/Neo" onClick={handleTemplates} icon={RiLayout4Line} label="Template" />
 
             {/* Admin/SuperAdmin specific features */}
@@ -207,5 +202,4 @@ const Navigation = () => {
     </div>
   );
 };
-
 export default Navigation;

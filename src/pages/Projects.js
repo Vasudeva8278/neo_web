@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import NeoProject from "./NeoProject"; // Import your NeoProject component
 import NeoModal from "../components/NeoModal"; // Import the Modal component
 import ProjectCards from "../components/Project/ProjectCards";
+
 //import { getAllProjects } from "../services/projectApi";
 import SearchBar from "../components/SearchBar";
 import SearchHeader from "../components/SearchHeader";

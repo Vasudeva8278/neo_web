@@ -39,6 +39,9 @@ const Clients = () => {
 
   const handleCreateClient = (projectData) => {
     navigate('/viewAllHighlights', {
+
+      
+
       state: { project: projectData },
     });
   };

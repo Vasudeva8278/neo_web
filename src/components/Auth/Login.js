@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../services/api";
 import backgroundImage from "../../Assets/back.png";
+import { useGoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,19 +14,52 @@ const Login = () => {
   const { setUser, setToken } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const handleGoogleLoginSuccess = async (tokenResponse) => {
+    console.log('Google login success:', tokenResponse);
+    // Send the access_token to your backend to verify and create/login user
+    try {
+      setLoading(true);
+      // Replace with your actual backend endpoint for Google OAuth
+      const response = await api.post('/api/users/google', {
+        access_token: tokenResponse.access_token,
+      });
+      setLoading(false);
+      setUser(response.data.user);
+      setToken(response.data.token);
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('orgId', response.data.user.orgId);
+      navigate('/projects');
+    } catch (err) {
+      setLoading(false);
+      setError(err.response?.data?.message || 'Google login failed.');
+      console.error('Google login backend error:', err);
+    }
+  };
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: handleGoogleLoginSuccess,
+    onError: (errorResponse) => {
+      console.error('Google login failed:', errorResponse);
+      setError('Google login failed. Please try again.');
+    },
+    // flow: 'auth-code', // Consider 'auth-code' flow for better security if your backend handles the code exchange
+  });
+
   const mutation = useMutation(
     async (loginData) => {
       setLoading(true);
-      const response = await api.post("http://localhost:7000/api/users/login", loginData);
+      const response = await api.post("/api/users/login", loginData);
       return response.data;
     },
     {
       onSuccess: (data) => {
+        console.log('Login successful:', data);
         setLoading(false);
         setUser(data.user);
         setToken(data.token);
         localStorage.setItem("token", data.token);
         localStorage.setItem("orgId", data.user.orgId);
+        console.log('About to navigate to /projects');
         navigate("/projects");
       },
       onError: (error) => {
@@ -144,9 +178,16 @@ const Login = () => {
             <div className="border-t border-gray-300 flex-grow"></div>
           </div>
 
-          <button className="w-full mt-6 flex items-center justify-center py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300">
+          {/* <button className="w-full mt-6 flex items-center justify-center py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300">
             <GoogleIcon />
             <span className="font-medium text-gray-700">Sign up with Google</span>
+          </button> */}
+          <button 
+            onClick={() => googleLogin()}
+            className="w-full mt-6 flex items-center justify-center py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300"
+          >
+            <GoogleIcon />
+            <span className="font-medium text-gray-700">Sign in with Google</span>
           </button>
 
           <p className="text-center mt-8 text-sm text-gray-600">
