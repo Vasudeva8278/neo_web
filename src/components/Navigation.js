@@ -102,104 +102,92 @@ const Navigation = () => {
   };
 
   return (
-    <div className={`flex h-full fixed top-0 left-0 w-full mt-16 ${isMobile ? 'z-50' : ''}`}>
-      <div className={`relative border-r border-gray-300 flex flex-col bg-gray-100 h-full transition-all duration-300 ${
-        isMobile ? 'w-12' : 'w-20'
-      }`}>
-        {/* User Profile Section */}
-        <div className={`flex flex-col items-center w-full border-b border-gray-300 ${
-          isMobile ? 'py-2' : 'py-4'
-        }`}>
-          <img
-            src={user?.profilePic || photo}
-            alt='Profile'
-            className={`rounded-full mb-1 cursor-pointer border-2 border-transparent hover:border-blue-400 transition-colors duration-200 ${
-              isMobile ? 'w-6 h-6' : 'w-12 h-12'
-            }`}
-            onClick={handleProfileClick}
-          />
-          {!isMobile && (
-            <div className='text-center text-gray-800'>
-              <div className='text-sm font-semibold truncate w-full px-1'>{user.name}</div>
-            </div>
-          )}
-          {!isMobile && <MdArrowDropDown className='w-6 h-6 mt-2 text-gray-600' />}
-        </div>
-
-        {/* Main Navigation Items */}
-        <nav className={`flex flex-col items-center ${
-          isMobile ? 'py-2 space-y-2' : 'py-4 space-y-4'
-        }`}>
-          <ul className={`w-full flex flex-col items-center ${
-            isMobile ? 'space-y-1' : 'space-y-2'
-          }`}>
-            <NavItem to="/Home" icon={GoHome} label="Home" />
-
-            <li className="w-full flex flex-col items-center">
-                <div
-                    onClick={handleProjects}
-                    className={`
-                        flex flex-col items-center p-2 rounded-lg cursor-pointer w-full
-                        hover:bg-blue-100 transition duration-200
-                        ${isActive("/projects") && !location.pathname.startsWith("/projects/") ? "shadow-md shadow-blue-300 bg-blue-50" : ""}
-                    `}
-                >
-                    <FaRegFolderOpen className={`w-5 h-5 mb-1 ${isActive("/projects") && !location.pathname.startsWith("/projects/") ? "text-blue-600" : "text-gray-700"}`} />
-                    <span className={`text-xs font-semibold text-center ${isActive("/projects") && !location.pathname.startsWith("/projects/") ? "text-blue-600" : "text-gray-700"}`}>
-                        Projects
-                    </span>
-                </div>
-                <div
-                    className='mt-1 cursor-pointer hover:text-blue-600 transition-colors duration-200'
-                    onClick={() => setIsModalOpen(true)}
-                    title='Add new Project'
-                >
-                    <IoIosAddCircleOutline className='w-5 h-5 text-gray-600 hover:text-blue-600' />
-                </div>
-            </li>            <NavItem to="/clients" onClick={handleClients} icon={HiOutlineUserGroup} label="Clients" />
-            <NavItem to="/Neo" onClick={handleTemplates} icon={RiLayout4Line} label="Template" />
-
-            {/* Admin/SuperAdmin specific features */}
-            {user && user?.features?.includes("viewDashboard") && (
-              <NavItem to="/dashboard" icon={FaHome} label="Dashboard" />
-            )}
-            {user && user?.features?.includes("viewOrganizations") && (
-              <NavItem to="/organizations" icon={FaBuilding} label="Organizations" />
-            )}
-            {user && user?.features?.includes("viewProfile") && (
-              <NavItem to="/profile" icon={FaUser} label="Profile" />
-            )}
-          </ul>
-        </nav>
-
-        {/* Logout Section at the bottom */}
-        <div className={`w-full border-t border-gray-300 flex justify-center ${
-          isMobile ? 'py-2' : 'py-4'
-        }`}>
-          <div
-            onClick={() => {
-              logout();
-              navigate('/login');
-            }}
-            className='flex flex-col items-center p-2 rounded-lg cursor-pointer w-full hover:bg-blue-100 transition duration-200'
-          >
-            <FaSignOutAlt className='w-5 h-5 mb-1 text-gray-700' />
-            <span className='text-xs font-semibold text-center text-gray-700'>Logout</span>
+    <div className={`bg-gray-100 border-r border-gray-300 flex flex-col h-full transition-all duration-300 ${isMobile ? 'w-12' : 'w-20'}`}>
+      {/* User Profile Section */}
+      <div className={`flex flex-col items-center w-full border-b border-gray-300 ${isMobile ? 'py-2' : 'py-4'}`}>
+        <img
+          src={user?.profilePic || photo}
+          alt='Profile'
+          className={`rounded-full mb-1 cursor-pointer border-2 border-transparent hover:border-blue-400 transition-colors duration-200 ${isMobile ? 'w-6 h-6' : 'w-12 h-12'}`}
+          onClick={handleProfileClick}
+        />
+        {!isMobile && (
+          <div className='text-center text-gray-800'>
+            <div className='text-sm font-semibold truncate w-full px-1'>{user.name}</div>
           </div>
-        </div>
-
-        {/* Modal for New Project */}
-        <NeoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-          <NeoProject
-            mode={"add"}
-            project={""}
-            onSave={handleSave}
-            handleClose={handleCancel}
-          />
-        </NeoModal>
+        )}
+        {!isMobile && <MdArrowDropDown className='w-6 h-6 mt-2 text-gray-600' />}
       </div>
-     
+
+      {/* Main Navigation Items */}
+      <nav className={`flex flex-col items-center flex-1 ${isMobile ? 'py-2 space-y-2' : 'py-4 space-y-4'}`}>
+        <ul className={`w-full flex flex-col items-center ${isMobile ? 'space-y-1' : 'space-y-2'}`}>
+          <NavItem to="/Home" icon={GoHome} label="Home" />
+          <li className="w-full flex flex-col items-center">
+            <div
+              onClick={handleProjects}
+              className={`
+                flex flex-col items-center p-2 rounded-lg cursor-pointer w-full
+                hover:bg-blue-100 transition duration-200
+                ${isActive("/projects") && !location.pathname.startsWith("/projects/") ? "shadow-md shadow-blue-300 bg-blue-50" : ""}
+              `}
+            >
+              <FaRegFolderOpen className={`w-5 h-5 mb-1 ${isActive("/projects") && !location.pathname.startsWith("/projects/") ? "text-blue-600" : "text-gray-700"}`} />
+              <span className={`text-xs font-semibold text-center ${isActive("/projects") && !location.pathname.startsWith("/projects/") ? "text-blue-600" : "text-gray-700"}`}>
+                Projects
+              </span>
+            </div>
+            <div
+              className='mt-1 cursor-pointer hover:text-blue-600 transition-colors duration-200'
+              onClick={() => setIsModalOpen(true)}
+              title='Add new Project'
+            >
+              <IoIosAddCircleOutline className='w-5 h-5 text-gray-600 hover:text-blue-600' />
+            </div>
+          </li>
+          <NavItem to="/clients" onClick={handleClients} icon={HiOutlineUserGroup} label="Clients" />
+          <NavItem to="/Neo" onClick={handleTemplates} icon={RiLayout4Line} label="Template" />
+
+          {/* Admin/SuperAdmin specific features */}
+          {user && user?.features?.includes("viewDashboard") && (
+            <NavItem to="/dashboard" icon={FaHome} label="Dashboard" />
+          )}
+          {user && user?.features?.includes("viewOrganizations") && (
+            <NavItem to="/organizations" icon={FaBuilding} label="Organizations" />
+          )}
+          {user && user?.features?.includes("viewProfile") && (
+            <NavItem to="/profile" icon={FaUser} label="Profile" />
+          )}
+        </ul>
+      </nav>
+
+      {/* Logout Section at the bottom */}
+      <div className={`w-full border-t border-gray-300 flex justify-center ${isMobile ? 'py-2' : 'py-4'}`}>
+        <div
+          onClick={() => {
+            logout();
+            navigate('/login');
+          }}
+          className='flex flex-col items-center p-2 rounded-lg cursor-pointer w-full hover:bg-blue-100 transition duration-200'
+        >
+          <FaSignOutAlt className='w-5 h-5 mb-1 text-gray-700' />
+          {!isMobile && (
+            <span className='text-xs font-semibold text-center text-gray-700'>Logout</span>
+          )}
+        </div>
+      </div>
+
+      {/* Modal for New Project */}
+      <NeoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <NeoProject
+          mode={"add"}
+          project={""}
+          onSave={handleSave}
+          handleClose={handleCancel}
+        />
+      </NeoModal>
     </div>
   );
 };
+
 export default Navigation;

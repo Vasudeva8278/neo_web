@@ -56,7 +56,7 @@ const Projects = () => {
 
   return (
     <div className="App">
-      <div className="flex text-gray-400 text-xs p-1"> Projects</div>
+      <div className="flex text-gray-400 text-xs p-1"> RecentProjects</div>
       <div className="m-1">
         <SearchHeader />
       </div>
@@ -69,14 +69,9 @@ const Projects = () => {
         </button>
         
       </div>
-      <div className="mb-8 p-4 bg-white rounded-lg shadow-sm">
-        <p className="text-xl font-semibold text-gray-700">
-          Total Projects: <span className="text-indigo-600">{projects.length}</span>
-        </p>
-      </div>
-
+    
       <div className="w-full p-1">
-        <h2 className="text-2xl font-semibold mb-3 text-left ml-12 ">Projects</h2>
+        <h2 className="text-2xl font-semibold mb-3 text-left ml-12 "> Recent Projects</h2>
         <div className="flex justify-center gap-6">
          
           {loading && <div>Loading...</div>}

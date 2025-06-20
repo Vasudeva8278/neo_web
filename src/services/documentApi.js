@@ -16,14 +16,14 @@ api.interceptors.request.use((config) => {
 
 export const createDocument = async (formData) => {
   try {
-    const response = await api.post(`/projects`, formData, {
+    const response = await api.post(`/documents`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
   } catch (error) {
-    console.error("Error while creating document", error);
+    console.error("Error while creating document in createDocument:", error);
     throw error;
   }
 };
@@ -97,7 +97,7 @@ export const getDocumentById = async (documentId) => {
 export const getDocumentsByTemplateId = async (templateId) => {
   try {
     const response = await api.get(
-      `/documents/template-documents/${templateId}`
+      `/document/template-documents/${templateId}`
     );
     return response.data;
   } catch (error) {
@@ -110,11 +110,11 @@ export const getDocumentsByTemplateId = async (templateId) => {
 export const getDocumentsListByTemplateId = async (projectId, templateId) => {
   try {
     const response = await api.get(
-      `/projectDocs/${projectId}/template-documents/${templateId}`
+      `/document/template-documents/${templateId}`
     );
     return response.data;
   } catch (error) {
-    console.error("Error while fetching documents by template ID", error);
+    console.error("Error while fetching documents list by template ID", error);
     throw error;
   }
 };
