@@ -70,11 +70,11 @@ export const getSubprojects = async (projectId) => {
 
 export const getTemplatesAndHighlightsWithinProject = async (projectId) => {
   try {
-    const response = await api.get(`/projects/templateHighlights/${projectId}`);
+    const response = await api.get(`/projects/${projectId}/templates`);
     console.log(response.data);
     return response.data;
   } catch (error) {
-    console.error("Error while fetching subprojects", error);
+    console.error("Error while fetching templates and highlights for project:", error);
     throw error;
   }
 };

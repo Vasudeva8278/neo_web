@@ -3,7 +3,7 @@ import { FaBell, FaCaretDown, FaBars } from 'react-icons/fa'; // Using react-ico
 import logo from '../Assets/logo-neo.png'
 const Header = ({ toggleNavigation }) => {
     return (
-        <header className="customBlue shadow-sm sticky top-0 left-0 w-full">
+        <header className="customBlue shadow-sm sticky top-0 left-0 w-full z-20">
             <nav className="py-3  flex justify-between items-center w-full">
                 <div className="flex items-center space-x-4 ml-6" >
                 <button

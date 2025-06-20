@@ -260,7 +260,7 @@ code {
   width: 72%;
 }
 
-/* Scrollbar styling */
+Scrollbar styling
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

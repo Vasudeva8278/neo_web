@@ -18,6 +18,14 @@ import { ViewListIcon } from "@heroicons/react/solid";
 import Instructions from "../components/Instructions";
 import TableHeader from "../components/TableHeader";
 import { FaArrowRight } from "react-icons/fa";
+import {
+  ArrowLeft,
+  Search,
+  Eye,
+  HelpCircle,
+  Plus,
+  Maximize2,
+} from "lucide-react";
 
 import {
   addNewDocument,
@@ -44,44 +52,48 @@ const HighlightTable = ({ highlightsArray, templateId, filename }) => {
   const contentRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [items, setItems] = useState([]);
+  const [templateName, setTemplateName] = useState("");
 
   const location = useLocation(); // Gives you access to the current URL including the query string
   const queryParams = new URLSearchParams(location.search);
   const projectId = queryParams.get("projectId");
-  const [templateName, setTemplateName] = useState("");
 
   console.log(templateId, filename);
   const fetchData = async () => {
-    const response = await getDocumentsListByTemplateId(projectId, templateId);
-    const templateName = response?.templateName;
-    setTemplateName(templateName);
-    const data = response?.documents;
-    setMsDocument(data);
-    console.log(data);
+    try {
+      const response = await getDocumentsListByTemplateId(projectId, templateId);
+      setTemplateName(response?.templateName || "Template");
+      const data = response?.documents || [];
+      setMsDocument(data);
+      console.log(data);
 
-    const items =
-      data.length > 0
-        ? data.map((item) => ({
-            id: item._id,
-            image: item?.thumbnail, // Assuming `thumbnail` exists in each item
-            title: item.fileName,
-            description: item.highlights
-              .filter((highlight) => highlight.type === "text")
-              .map((highlight) => highlight.text)
-              .join(" "),
-          }))
-        : [];
+      const items =
+        data.length > 0
+          ? data.map((item) => ({
+              id: item._id,
+              image: item?.thumbnail, // Assuming `thumbnail` exists in each item
+              title: item.fileName,
+              description: (item.highlights || []) // Guard against undefined highlights
+                .filter((highlight) => highlight.type === "text")
+                .map((highlight) => highlight.text)
+                .join(" "),
+            }))
+          : [];
 
-    setItems(items);
-    setTableData(
-      data.length > 0
-        ? data
-        : highlightsArray.map((highlight) => ({
-            ...highlight,
-            id: uuidv4(),
-            templateId,
-          }))
-    );
+      setItems(items);
+      setTableData(
+        data.length > 0
+          ? data
+          : (highlightsArray || []).map((highlight) => ({ // Guard against undefined prop
+              ...highlight,
+              id: uuidv4(),
+              templateId,
+            }))
+      );
+    } catch (error) {
+      console.error("Failed to fetch and process highlight table data:", error);
+      // Optionally, set an error state here to inform the user.
+    }
   };
 
   useEffect(() => {
@@ -208,318 +220,140 @@ const HighlightTable = ({ highlightsArray, templateId, filename }) => {
   };
   const handleExportAll = async (event) => {
     event.preventDefault();
-    const documentIds = msDocument.map((doc) => doc._id);
-    const document = {
+    const documentIds = (msDocument || []).map((doc) => doc._id);
+    const documentData = {
       documentIds,
       folderName: filename,
-      templateId: templateId,
-      projectId: projectId,
+      templateId,
+      projectId,
     };
     try {
       setIsLoading(true);
-      const response = await generateZipFile(document, filename);
-      if (response === "Success") setIsLoading(false);
+      await generateZipFile(documentData, filename);
     } catch (error) {
-      console.error(error);
-      console.log("Failed to zip the documents.");
+      console.error("Failed to generate documents:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return (
-    <div className='w-full'>
-      <div className='w-full rounded-lg'>
-        <div className='flex pb-2'>
-          <div className='w-96 flex-1 rounded-lg mr-4 text-gray-400 pt-2 text-sm'>
-            <div className='flex'>
-              {/*Project Name <FaArrowRight className="text-gray-500 pt-2" size={16} />*/}{" "}
-              {templateName}
-            </div>
-          </div>
-          <div className='w-1/2 text-gray-400 rounded-lg mr-4'>
-            <input
-              type='text'
-              value='Search'
-              //onChange={handleInputChange}
-              placeholder='Search...'
-              className='px-4 py-2 w-full max-w-md border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-            />
-          </div>
-          <div className='w-1/4 rounded-lg mr-4'>
-            <button
-              className='px-2 py-2 bg-gray-200 border-black-500 text-blue-500 rounded hover:bg-gray-600 mr-2'
-              onClick={viewAllDocument}
-            >
-              Preview
-            </button>
-            <button
-              className='px-2 py-2 bg-indigo-500 border-blue-500 text-white rounded hover:bg-blue-600 transition-colors mr-2'
-              onClick={handleExportAll}
-            >
-              Generate
-            </button>
-            <button
-              className='px-2 py-2 bg-indigo-500 border-blue-500 text-white rounded hover:bg-blue-600 transition-colors'
-              onClick={displayListofDocuments}
-            >
-              Summary
-            </button>
-          </div>
-          <div className='w-1/8 rounded-lg'>
-            <TooltipIcon>
-              <ul className='list-disc pl-5 space-y-2 flex-grow'>
-                <li>
-                  Please click on the + sign to add more columns/rows to the
-                  tables.
-                </li>
-                <li>
-                  Variable names can be edited by double-clicking on the name.
-                  (The allotted space will remain unchanged)
-                </li>
-                <li>
-                  Click on Generate button below to get the documents prepared
-                  using your standard format.
-                </li>
-                <li>
-                  The documents can be auto formatted in the preview window.
-                </li>
-              </ul>
-            </TooltipIcon>{" "}
-          </div>
-        </div>
+  const renderHeader = () => (
+    <div className='flex items-center justify-between p-4 bg-white border-b border-gray-200'>
+      <div className='flex items-center gap-4'>
+        <button
+          onClick={() => navigate(-1)}
+          className='p-2 rounded-md hover:bg-gray-100'
+        >
+          <ArrowLeft className='w-5 h-5 text-gray-600' />
+        </button>
+        <h1 className='text-xl font-semibold text-gray-800'>
+          {templateName}
+        </h1>
       </div>
-      <div className='flex w-full'>
-        <div className='flex w-full overflow-x-auto  bg-white  rounded-lg'>
-          {tableData.length > 0 && (
-            <table
-              id='doc-table'
-              className='bg-white shadow-md rounded-lg border-collapse w-full'
-            >
-              <thead>
-                <tr className='bg-gray-300 text-gray-700 text-sm font-normal'>
-                  <TableHeader
-                    tableData={tableData}
-                    handleAddRow={handleAddRow}
-                    name='Variable Name'
-                    firstColumn={true}
-                  />
-                  {tableData.map((row, rowIndex) => (
-                    <th key={rowIndex} className='px-2 text-left'>
-                      <div className='flex items-center justify-between text-sm'>
-                        <input
-                          type='text'
-                          value={row.fileName}
-                          onChange={(e) =>
-                            handleInputChange(e.target.value, rowIndex, false)
-                          }
-                          onBlur={() => handleBlur(rowIndex, false)}
-                          className='h-8 px-2 bg-transparent rounded focus:ring-2 focus:ring-blue-500'
-                        />
-                        <div className='flex items-center'>
-                          {tableData.length > 1 && (
-                            <button
-                              className='bg-transparent text-red-400 rounded hover:bg-white transition-colors m-2 flex items-center'
-                              onClick={() => handleDeleteDocument(row)}
-                            >
-                              <MinusIcon className='w-5 h-5 inline-block m-1' />
-                              <span className='m-1'>Remove</span>
-                            </button>
-                          )}
-                          <button
-                            className='hidden bg-green-500 text-white rounded hover:bg-blue-600 transition-colors m-2'
-                            onClick={() => handleViewDocument(row)}
-                          >
-                            <EyeIcon className='w-5 h-5 inline-block m-1' />
-                          </button>
-                          <button
-                            className='hidden bg-green-500 text-white rounded hover:bg-blue-600 transition-colors m-2'
-                            onClick={() => handleExport(row)}
-                          >
-                            <DownloadIcon className='w-5 h-5 inline-block m-1' />
-                          </button>
-                        </div>
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {tableData[0].highlights.map((cell, cellIndex) => (
-                  <tr key={cellIndex} className=' p-1 m-1'>
-                    <td className='p-1 m-1 border-r border-gray-300'>
-                      <div className='border border-gray-300 rounded p-1 pl-4 m-1 text-sm'>
-                        {cell.label}
-                      </div>
-                    </td>
-                    {tableData.map((row, rowIndex) => (
-                      <td
-                        key={rowIndex}
-                        className='  p-1 m-1 border-r border-gray-300 text-sm'
-                      >
-                        <div className='border border-gray-300 rounded   '>
-                          {tableData[rowIndex].highlights[cellIndex].type ===
-                          "text" ? (
-                            <input
-                              type='text'
-                              value={
-                                tableData[rowIndex].highlights[cellIndex].text
-                              }
-                              onChange={(e) =>
-                                handleInputChange(
-                                  e.target.value,
-                                  rowIndex,
-                                  cellIndex
-                                )
-                              }
-                              onBlur={() => handleBlur(rowIndex, cellIndex)}
-                              onFocus={() =>
-                                handleDocument(rowIndex, cellIndex)
-                              }
-                              className=' rounded focus:ring-2 focus:ring-blue-500 w-full m-0 p-1 pl-4'
-                            />
-                          ) : tableData[rowIndex].highlights[cellIndex].type ===
-                            "image" ? (
-                            <>
-                              {" "}
-                              {tableData[rowIndex].highlights[cellIndex]
-                                .text !== "" ? (
-                                <>
-                                  <span
-                                    className='font-semibold hidden'
-                                    dangerouslySetInnerHTML={{
-                                      __html:
-                                        tableData[rowIndex].highlights[
-                                          cellIndex
-                                        ].text,
-                                    }}
-                                  ></span>{" "}
-                                  <button
-                                    onClick={(e) =>
-                                      changeImage(e, rowIndex, cellIndex)
-                                    }
-                                    className='mt-2'
-                                  >
-                                    <img src={imageIcon} />
-                                  </button>
-                                </>
-                              ) : (
-                                <button>
-                                  <input
-                                    type='file'
-                                    name='selectedImage'
-                                    onChange={(e) =>
-                                      changeImage(
-                                        e.target.value,
-                                        rowIndex,
-                                        cellIndex
-                                      )
-                                    }
-                                    accept='image/*'
-                                    className='mt-2'
-                                  />
-                                </button>
-                              )}{" "}
-                            </>
-                          ) : tableData[rowIndex].highlights[cellIndex].type ===
-                            "table" ? (
-                            <>
-                              {" "}
-                              {tableData[rowIndex].highlights[cellIndex]
-                                .text !== "" ? (
-                                <>
-                                  <span
-                                    className='font-normal hidden'
-                                    dangerouslySetInnerHTML={{
-                                      __html:
-                                        tableData[rowIndex].highlights[
-                                          cellIndex
-                                        ].text,
-                                    }}
-                                  ></span>
-                                  <button
-                                    onClick={(e) =>
-                                      changeImage(e, rowIndex, cellIndex)
-                                    }
-                                    className='mt-2'
-                                  >
-                                    <img src={tableIcon} />
-                                  </button>
-                                </>
-                              ) : (
-                                <button>+add</button>
-                              )}{" "}
-                            </>
-                          ) : (
-                            " "
-                          )}
-                        </div>
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          <div
-            ref={contentRef}
-            id='hiddenRenderDoc'
-            dangerouslySetInnerHTML={{ __html: conversionStatus }}
-            className='border p-4 mr-4 flex-grow bg-white shadow-sm rounded-lg hidden'
-            style={{ height: "500px", overflow: "auto" }}
-          ></div>
-          {isLoading && (
-            <div className='fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50'>
-              <div className='loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32'></div>
-            </div>
-          )}
-          <div className='mt-4 space-x-2 hidden'>
-            <button
-              className='px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors'
-              onClick={handleBack}
-            >
-              <ArrowLeftIcon className='w-5 h-5 inline-block mr-2' /> Back
-            </button>
-            <button
-              className='px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors'
-              onClick={handleExportAll}
-            >
-              <DownloadIcon className='w-5 h-5 inline-block mr-2' /> Export All
-            </button>
-            <button
-              className='px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors'
-              onClick={viewAllDocument}
-            >
-              <ViewListIcon className='w-5 h-5 inline-block mr-2' /> View All
-            </button>
-          </div>
-          <div>
-            <DocumentHighlightsModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              onSave={saveTableOrImage}
-              highlight={highlight}
-              tempDocument={currentDoc}
-              initialText={highlight.text}
-            />
-          </div>
-        </div>
-      </div>
-      <div className='flex ml-12'>
-        <div className='mt-4'>
-          <Carousel
-            items={items}
-            slidesToShow={6}
-            itemWidth={150}
-            carouselWidth={900}
-            projectId={projectId}
-            templateId={templateId}
+      <div className='flex items-center gap-4'>
+        <div className='relative'>
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' />
+          <input
+            type='text'
+            placeholder='Search...'
+            className='pl-10 pr-4 py-2 w-64 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
           />
         </div>
+        <button className='flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border rounded-lg hover:bg-gray-50'>
+          <Eye className='w-5 h-5' />
+          Preview
+        </button>
+        <button
+          onClick={handleExportAll}
+          className='px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700'
+          disabled={isLoading}
+        >
+          {isLoading ? "Generating..." : "Generate"}
+        </button>
+        <button className='p-2 rounded-full hover:bg-gray-100'>
+          <HelpCircle className='w-6 h-6 text-gray-500' />
+        </button>
       </div>
-      {/*  <div className="col-span-1 bg-white rounded-lg shadow-md  ">
-      Right column content goes here 
+    </div>
+  );
 
-        <Instructions handleExportAll={handleExportAll} viewAllDocument={viewAllDocument} displayListofDocuments={displayListofDocuments} />
-      </div>*/}
+  const renderTable = () => {
+    if (tableData.length === 0) {
+      return (
+        <div className='text-center p-8 text-gray-500'>
+          No documents found for this template.
+        </div>
+      );
+    }
+
+    const firstDocument = tableData[0];
+
+    // Add a robust guard to ensure the document and its highlights exist
+    if (!firstDocument || !Array.isArray(firstDocument.highlights)) {
+      return (
+        <div className='text-center p-8 text-gray-500'>
+          Document is missing highlight data.
+        </div>
+      );
+    }
+
+    const variableNames = firstDocument.highlights.map((h) => h.label);
+
+    return (
+      <div className='flex-1 p-4 overflow-auto'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          {/* Column 1: Variable Names */}
+          <div className='bg-white p-4 rounded-lg border'>
+            <div className='flex items-center justify-between mb-4'>
+              <h2 className='font-semibold text-gray-700'>Variable Name</h2>
+              <button className='flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800'>
+                <Plus className='w-4 h-4' />
+                Add
+              </button>
+            </div>
+            <div className='space-y-2'>
+              {variableNames.map((name, index) => (
+                <div
+                  key={index}
+                  className='px-4 py-3 bg-gray-50 border rounded-md text-gray-800'
+                >
+                  {name}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Column 2: Document 1 */}
+          <div className='bg-white p-4 rounded-lg border'>
+            <div className='flex items-center justify-between mb-4'>
+              <h2 className='font-semibold text-gray-700'>
+                {firstDocument.fileName}
+              </h2>
+              <button className='p-2 rounded-md hover:bg-gray-100'>
+                <Maximize2 className='w-5 h-5 text-gray-500' />
+              </button>
+            </div>
+            <div className='space-y-2'>
+              {firstDocument.highlights.map((highlight, index) => (
+                <input
+                  key={highlight._id}
+                  type='text'
+                  value={highlight.text}
+                  onChange={(e) => handleInputChange(e.target.value, 0, index)}
+                  className='w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className='flex flex-col h-screen bg-gray-50'>
+      {renderHeader()}
+      {renderTable()}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import HighlightTable from '../../pages/HighlightTable';
 import { useLocation, useParams } from 'react-router-dom';
-import { getTemplatesById } from '../../services/templateApi';
+import { getDocumentsByTemplateId } from '../../services/documentApi';
 
 
 const ExportComponent = () => {
@@ -19,12 +19,16 @@ const ExportComponent = () => {
     const fetchDocument = async () => {
       if (id) {
         try {
-          const response = await getTemplatesById(projectId,id);
-          const result = response;
-          let arrayData = [];
-          arrayData.push(result.highlights);
-          setHighlightsArray(arrayData);
-          setFileName(result.fileName);
+          const response = await getDocumentsByTemplateId(id);
+          const result = response[0];
+          if (result) {
+            let arrayData = [];
+            arrayData.push(result.highlights);
+            setHighlightsArray(arrayData);
+            setFileName(result.fileName);
+          } else {
+            setError('No document found for this template.');
+          }
         } catch (error) {
           setError('Failed to fetch document');
           console.error('Failed to fetch document', error);

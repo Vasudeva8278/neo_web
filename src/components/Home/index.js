@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ProjectProvider } from "../../context/ProjectContext";
 import TemplateProvider from "../../context/TemplateContext";
-import Layout from "../Layout/Layout";
 import Header from "../Header";
 import Navigation from "../Navigation";
 import LandingPage from "../../pages/LandingPage.tsx";
@@ -32,11 +31,11 @@ const Home = () => {
   return (
     <ProjectProvider>
       <TemplateProvider>
-        <div className="flex flex-col h-screen">
-          <Header toggleNavigation={toggleNavigation} className="sticky top-0 z-10" />
-          <div className="flex-1 flex mt-2 overflow-auto">
+        <div className="flex flex-col h-screen bg-gray-50">
+          <Header toggleNavigation={toggleNavigation} />
+          <div className="flex overflow-hidden">
             {isNavigationVisible && <Navigation />}
-            <div className="flex-1 ml-12 lg:ml-20 mt-1 px-2 sm:px-4 lg:px-0">
+            <main className="flex-1 overflow-y-auto p-4 sm:p-6">
               <Routes>
                 {/* Dashboard */}
                 <Route path="/" element={<Dashboard />} />
@@ -65,7 +64,7 @@ const Home = () => {
                 {/* Profile */}
                 <Route path="/profile" element={<ProfileSettings />} />
               </Routes>
-            </div>
+            </main>
           </div>
         </div>
       </TemplateProvider>
