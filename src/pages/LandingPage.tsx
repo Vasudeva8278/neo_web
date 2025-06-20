@@ -4,6 +4,8 @@ import TrustedCompanies from '../Landing/TrustedCompanies.tsx';
 import Pricing from '../Landing/Pricing.tsx';
 import Features from '../Landing/Features.tsx';
 import Footer from '../Landing/Footer.tsx';
+import Colletion from '../Landing/Collection.tsx';
+import Explore from '../Landing/Explore.tsx';
 function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
@@ -11,6 +13,8 @@ function LandingPage() {
       <TrustedCompanies />
       <Pricing />
       <Features />
+       <Explore />
+      <Colletion />
       <Footer />
     </div>
   );

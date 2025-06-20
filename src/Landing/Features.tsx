@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from "react";
 import { FaBolt, FaInfinity } from 'react-icons/fa';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Features = () => {
+  const [activeTab, setActiveTab] = useState("Research");
+  const tabs = ["Research", "Plan", "Design"];
   return (
     <div>
       {/* Business Growth Section */}
@@ -17,32 +20,79 @@ const Features = () => {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="relative">
-              <div className="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-3xl p-8 shadow-2xl">
-                <div className="bg-white rounded-2xl p-6 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex space-x-3">
+            <div className="">
+              <div className="relative">
+                {/* Browser Window */}
+                <div className="bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden ">
+                  {/* Browser Header */}
+                  <div className="bg-gray-100 px-4 py-3 flex items-center space-x-2 border-b border-gray-200">
+                    <div className="flex space-x-2">
                       <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                       <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                     </div>
-                    <span className="text-gray-400 text-sm">wr.app</span>
+                    <div className="flex-1 flex justify-center">
+                      <div className="bg-white rounded px-3 py-1 text-xs text-gray-600 flex items-center space-x-2">
+                        <ChevronLeft className="w-3 h-3" />
+                        <ChevronRight className="w-3 h-3" />
+                        <span>website.com</span>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="grid grid-cols-6 gap-2 mb-4">
-                    {Array.from({ length: 24 }).map((_, i) => (
-                      <div key={i} className="aspect-square bg-gradient-to-br from-red-400 to-pink-500 rounded-lg"></div>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
-                    <span className="font-medium text-gray-700">Wanda Gordon</span>
+
+                  {/* Browser Content */}
+                  <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-100 "
+                    style={{ minHeight: '400px' }}>
+                    {/* Sidebar */}
+                    <div className="flex space-x-4">
+                      <div className="w-16 space-y-2">
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                        <div className="h-2 bg-blue-200 rounded"></div>
+                      </div>
+
+                      {/* Main Content Area */}
+                      <div className="flex-1">
+                        <div className="space-y-3">
+                          <div className="h-3 bg-blue-300 rounded w-3/4"></div>
+                          <div className="h-2 bg-blue-200 rounded w-full"></div>
+                          <div className="h-2 bg-blue-200 rounded w-5/6"></div>
+                          <div className="h-3 bg-blue-300 rounded w-3/4"></div>
+                          <div className="h-2 bg-blue-200 rounded w-full"></div>
+                          <div className="h-2 bg-blue-200 rounded w-5/6"></div>
+                          <div className="h-3 bg-blue-300 rounded w-3/4"></div>
+                          <div className="h-2 bg-blue-200 rounded w-full"></div>
+                          <div className="h-2 bg-blue-200 rounded w-5/6"></div>
+                          <div className="h-3 bg-blue-300 rounded w-3/4"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Floating Modal */}
+                    <div className="absolute right-8 top-20 bg-white rounded-lg shadow-xl p-4 border border-gray-200 max-w-xs">
+                      <div className="grid grid-cols-6 gap-1 mb-3">
+                        {Array.from({ length: 30 }, (_, i) => (
+                          <div key={i} className="aspect-square bg-gradient-to-br from-orange-200 to-red-300 rounded-sm border border-orange-300"></div>
+                        ))}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
+                        <span className="text-xs text-gray-600">Wanda Gordon</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-
             <div>
               <div className="flex items-center mb-6">
                 <FaBolt className="w-8 h-8 text-indigo-600 mr-3" />
@@ -52,10 +102,10 @@ const Features = () => {
                 Unlimited Ideas For Your Projects
               </h3>
               <p className="text-lg text-gray-600 leading-relaxed">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod 
-                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim 
-                veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea 
-                commodo consequat. Duis aute irure dolor in reprehenderit in voluptate 
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+                veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+                commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
                 velit esse cillum dolore eu fugiat nulla pariatur.
               </p>
             </div>
@@ -64,63 +114,99 @@ const Features = () => {
       </section>
 
       {/* Additional Feature Section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-50 to-purple-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <div className="flex items-center mb-6">
-                <FaInfinity className="w-8 h-8 text-purple-600 mr-3" />
-                <span className="text-purple-600 font-semibold uppercase tracking-wide">ENDLESS POSSIBILITIES</span>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Content */}
+          <div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-8">
+              Improve Workflow
+            </h2>
+
+            {/* Process Steps */}
+            <div className="w-full">
+              {/* Tab Buttons */}
+              <div className="flex space-x-8 mb-4 border-b border-gray-200">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`relative pb-2 text-sm font-medium transition-colors duration-200
+              ${activeTab === tab
+                        ? "text-purple-600"
+                        : "text-gray-500 hover:text-gray-700"}`}
+                  >
+                    {tab}
+
+                    {/* Animated underline */}
+                    {activeTab === tab && (
+                      <span className="absolute left-0 bottom-0 w-full h-0.5 bg-purple-600 rounded transition-all duration-300" />
+                    )}
+                  </button>
+                ))}
               </div>
-              <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Create Stunning Designs Effortlessly
-              </h3>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                Transform your creative vision into reality with our powerful design tools. 
-                Whether you're creating social media posts, business presentations, or 
-                marketing materials, our platform provides everything you need to make 
-                professional designs in minutes.
-              </p>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
-                  <span className="text-gray-700">Drag & Drop Interface</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  <span className="text-gray-700">Premium Templates</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
-                  <span className="text-gray-700">Team Collaboration</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  <span className="text-gray-700">Cloud Storage</span>
+
+              {/* Tab Content */}
+              <div className="mt-4 text-sm text-gray-700">
+                {activeTab === "Research" && <div>🔍 Research content goes here.</div>}
+                {activeTab === "Plan" && <div>📝 Plan content goes here.</div>}
+                {activeTab === "Design" && <div>🎨 Design content goes here.</div>}
+              </div>
+            </div>
+
+            <p className="text-gray-600 text-lg leading-relaxed mb-6">
+              Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+            </p>
+
+            <button className="inline-flex items-center text-purple-600 font-medium hover:text-purple-700 transition-colors">
+              Check the tools
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </button>
+          </div>
+
+          {/* Workspace Image */}
+          <div className="relative">
+            <div className="rounded-2xl overflow-hidden shadow-2xl">
+              <div className="aspect-video bg-blue-200 p-8">
+                {/* Simulated workspace */}
+                <div className="bg-white rounded-lg shadow-lg p-6 h-full">
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    </div>
+                    <div className="text-xs text-gray-500">DESIGN SYSTEM</div>
+                    <div className="flex space-x-2">
+                      <ChevronLeft className="w-4 h-4 text-gray-400" />
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </div>
+
+                  {/* Chart/Graph simulation */}
+                  <div className="space-y-4">
+                    <div className="flex items-end space-x-2 h-24">
+                      <div className="bg-blue-500 h-full w-8 rounded-t"></div>
+                      <div className="bg-orange-500 h-3/4 w-8 rounded-t"></div>
+                      <div className="bg-green-500 h-1/2 w-8 rounded-t"></div>
+                      <div className="bg-purple-500 h-5/6 w-8 rounded-t"></div>
+                      <div className="bg-pink-500 h-2/3 w-8 rounded-t"></div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="h-12 bg-gray-100 rounded"></div>
+                      <div className="h-12 bg-gray-100 rounded"></div>
+                      <div className="h-12 bg-gray-100 rounded"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="relative">
-              <div className="bg-white rounded-3xl p-8 shadow-2xl">
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  {Array.from({ length: 9 }).map((_, i) => (
-                    <div key={i} className={`aspect-square rounded-xl bg-gradient-to-br ${
-                      i % 3 === 0 ? 'from-blue-400 to-indigo-500' :
-                      i % 3 === 1 ? 'from-purple-400 to-pink-500' :
-                      'from-green-400 to-teal-500'
-                    }`}></div>
-                  ))}
-                </div>
-                <div className="text-center">
-                  <h4 className="font-bold text-gray-900 mb-2">Design Library</h4>
-                  <p className="text-gray-600 text-sm">1,000+ Premium Templates</p>
-                </div>
-              </div>
-            </div>
+            {/* Person silhouette overlay */}
+            <div className="absolute bottom-0 right-0 w-24 h-32 bg-gradient-to-t from-gray-800 to-gray-600 rounded-tl-3xl opacity-60"></div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 };

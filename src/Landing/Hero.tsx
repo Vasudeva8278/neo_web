@@ -1,62 +1,118 @@
-import React from 'react';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+
+import React, { useState } from 'react';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Hero = () => {
-  const [currentSlide, setCurrentSlide] = React.useState(0);
+
 
   const templates = [
     {
       id: 1,
-      title: 'Black Friday Sale',
-      image: 'https://images.pexels.com/photos/5632402/pexels-photo-5632402.jpeg?auto=compress&cs=tinysrgb&w=300&h=200',
-      color: 'from-purple-600 to-indigo-600'
+      content: (
+        <div className="w-60 h-64 bg-gradient-to-br from-purple-700 to-purple-900 rounded-2xl shadow-2xl p-4 flex flex-col justify-center items-center text-center">
+          <h3 className="text-white font-black text-lg">BLACK</h3>
+          <h3 className="text-white font-black text-lg">FRIDAY</h3>
+          <h3 className="text-white font-black text-lg">SALE</h3>
+          <div className="mt-2 text-yellow-400 text-sm font-bold">UP TO 70% OFF</div>
+        </div>
+      ),
     },
     {
       id: 2,
-      title: 'Our Business',
-      image: 'https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=300&h=200',
-      color: 'from-blue-500 to-cyan-500'
+      content: (
+        <div className="w-60 h-64 bg-yellow-400 rounded-2xl shadow-2xl p-4 flex flex-col justify-center items-center text-center">
+          <div className="w-16 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-3">
+            <span className="text-white text-xs font-bold">LOGO</span>
+          </div>
+          <h3 className="text-white font-black text-xl">OUR</h3>
+          <h3 className="text-white font-black text-xl">BUSINESS</h3>
+        </div>
+      ),
     },
     {
       id: 3,
-      title: 'Enjoy Vacations',
-      image: 'https://images.pexels.com/photos/1371360/pexels-photo-1371360.jpeg?auto=compress&cs=tinysrgb&w=300&h=200',
-      color: 'from-yellow-400 to-orange-500'
+      content: (
+        <div className="w-60 h-64 bg-gradient-to-br from-gray-500 to-neutral-700 rounded-2xl shadow-2xl p-4 flex flex-col justify-center items-center text-center">
+          <span className="text-blue-900 text-xs font-bold mb-2">TRAVEL</span>
+          <h3 className="text-blue-900 font-black text-lg">Enjoy Your</h3>
+          <h3 className="text-blue-900 font-black text-lg">Vacation</h3>
+          <h3 className="text-blue-900 font-black text-lg">With Us</h3>
+        </div>
+      ),
     },
     {
       id: 4,
-      title: 'Back to School',
-      image: 'https://images.pexels.com/photos/289737/pexels-photo-289737.jpeg?auto=compress&cs=tinysrgb&w=300&h=200',
-      color: 'from-purple-500 to-pink-500'
+      content: (
+        <div className="w-60 h-64 bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-900 rounded-2xl shadow-2xl p-4 flex flex-col justify-center items-center text-center">
+          <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mb-4">
+            <span className="text-purple-900 text-2xl font-bold">🎓</span>
+          </div>
+          <h3 className="text-yellow-400 font-black text-xl">BACK</h3>
+          <h3 className="text-yellow-400 font-black text-xl">TO</h3>
+          <h3 className="text-yellow-400 font-black text-xl">SCHOOL</h3>
+        </div>
+      ),
     },
     {
       id: 5,
-      title: 'Food Offers',
-      image: 'https://images.pexels.com/photos/1633578/pexels-photo-1633578.jpeg?auto=compress&cs=tinysrgb&w=300&h=200',
-      color: 'from-red-500 to-yellow-500'
+      content: (
+        <div className="w-60 h-64 bg-red-500 rounded-2xl shadow-2xl p-4 flex flex-col justify-center items-center text-center">
+          <h3 className="text-white font-black text-lg mb-2">GET UP TO</h3>
+          <h3 className="text-yellow-300 font-black text-4xl mb-2">60%</h3>
+          <h3 className="text-white font-black text-lg">OFF</h3>
+        </div>
+      ),
     },
     {
       id: 6,
-      title: 'Cyber Monday',
-      image: 'https://images.pexels.com/photos/5632379/pexels-photo-5632379.jpeg?auto=compress&cs=tinysrgb&w=300&h=200',
-      color: 'from-indigo-600 to-purple-600'
+      content: (
+        <div className="w-60 h-64 bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600 rounded-2xl shadow-2xl p-4 flex flex-col justify-center items-center text-center">
+          <div className="text-yellow-400 text-xs font-bold mb-2">SPECIAL OFFER</div>
+          <h3 className="text-white font-black text-xl">CRYPTO</h3>
+          <h3 className="text-yellow-300 font-black text-2xl">MONDAY</h3>
+          <div className="mt-2 text-white text-sm font-bold">35% OFF</div>
+        </div>
+      ),
     },
     {
       id: 7,
-      title: 'Black Friday',
-      image: 'https://images.pexels.com/photos/5632385/pexels-photo-5632385.jpeg?auto=compress&cs=tinysrgb&w=300&h=200',
-      color: 'from-gray-700 to-blue-600'
-    }
+      content: (
+        <div className="w-60 h-64 bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 rounded-2xl shadow-2xl p-4 flex flex-col justify-center items-center text-center">
+          <h3 className="text-white font-black text-sm mb-1">BLACK FRIDAY</h3>
+          <h3 className="text-white font-black text-sm mb-2">SALE</h3>
+          <h3 className="text-yellow-300 font-black text-lg mb-1">UP TO</h3>
+          <h3 className="text-yellow-300 font-black text-xl">50% OFF</h3>
+        </div>
+      ),
+    },
+    {
+      id: 8,
+      content: (
+        <div className="w-60 h-64 bg-gradient-to-br from-slate-600 to-slate-800 rounded-2xl shadow-2xl p-4 flex flex-col justify-center items-center text-center">
+          <div className="w-16 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-3">
+            <span className="text-white text-xs font-bold">LOGO</span>
+          </div>
+          <h3 className="text-white font-black text-xl">OUR</h3>
+          <h3 className="text-white font-black text-xl">BUSINESS</h3>
+        </div>
+      ),
+    },
   ];
 
+  const visibleCount = 6;
+  const [currentSlide, setCurrentSlide] = useState(0);
+
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % Math.max(1, templates.length - 6));
+    if (currentSlide + visibleCount < templates.length) {
+      setCurrentSlide(currentSlide + 1);
+    }
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + Math.max(1, templates.length - 6)) % Math.max(1, templates.length - 6));
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
+    }
   };
-
   return (
     <section className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -76,42 +132,38 @@ const Hero = () => {
         </div>
 
         {/* Template Showcase */}
-        <div className="relative">
-          <div className="flex items-center justify-center mb-8">
-            <button
-              onClick={prevSlide}
-              className="p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all mr-4 hover:bg-gray-50"
-            >
-              <FaChevronLeft className="w-6 h-6 text-gray-600" />
-            </button>
-            
-            <div className="overflow-hidden max-w-6xl">
-              <div 
-                className="flex transition-transform duration-500 ease-in-out gap-4"
-                style={{ transform: `translateX(-${currentSlide * 280}px)` }}
+        <section className="py-16 px-6 relative ">
+          <div className="relative h-50 flex items-center justify-center">
+            <div className="overflow-hidden px-10">
+              <div
+                className="flex gap-6 transition-transform duration-500"
+                style={{
+                  transform: `translateX(-${currentSlide * (15.5)}rem)` // 15.5rem includes card width + gap
+                }}
               >
                 {templates.map((template) => (
-                  <div
-                    key={template.id}
-                    className="flex-shrink-0 w-64 h-40 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
-                  >
-                    <div className={`w-full h-full bg-gradient-to-br ${template.color} flex items-center justify-center relative`}>
-                      <div className="absolute inset-0 bg-black/20"></div>
-                      <h3 className="text-white font-bold text-lg z-10">{template.title}</h3>
-                    </div>
+                  <div key={template.id} className="flex-shrink-0">
+                    {template.content}
                   </div>
                 ))}
               </div>
             </div>
 
+            {/* Navigation Arrows */}
+            <button
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:bg-white group z-50"
+            >
+              <ChevronLeft className="h-6 w-6 text-gray-600 group-hover:text-blue-600" />
+            </button>
             <button
               onClick={nextSlide}
-              className="p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all ml-4 hover:bg-gray-50"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:bg-white group z-50"
             >
-              <FaChevronRight className="w-6 h-6 text-gray-600" />
+              <ChevronRight className="h-6 w-6 text-gray-600 group-hover:text-blue-600" />
             </button>
           </div>
-        </div>
+        </section>
       </div>
     </section>
   );
