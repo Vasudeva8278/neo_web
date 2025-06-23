@@ -5,7 +5,6 @@ import TemplateProvider from "../../context/TemplateContext";
 import Header from "../Header";
 import Navigation from "../Navigation";
 import LandingPage from "../../pages/LandingPage";
-
 // Import pages
 import Dashboard from "../../pages/Dashboard";
 import Projects from "../../pages/Projects";
@@ -19,15 +18,12 @@ import DocumentContainer from "../Documents/DocumentContainer";
 import ExportComponent from "../Documents/ExportComponent";
 import ViewTemplatesHighlights from "../Template/ViewTemplatesHighlights";
 import ProfileSettings from "../Profile/ProfileSettings";
-
 const Home = () => {
   const [isNavigationVisible, setIsNavigationVisible] = useState(true);
-
   // Toggle Navigation visibility
   const toggleNavigation = () => {
     setIsNavigationVisible((prevState) => !prevState);
   };
-
   return (
     <ProjectProvider>
       <TemplateProvider>
@@ -40,27 +36,21 @@ const Home = () => {
                 {/* Dashboard */}
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/projects" element={<Projects />} />
-
                 {/* Templates */}
                 <Route path="/Neo" element={<Neo />} />
                 <Route path="/document/:id" element={<DocxToTextConverter />} />
-
                 {/* Documents */}
                 <Route path="/docview/:id" element={<DocumentView />} />
                 <Route path="/docviewall/:id" element={<DocumentContainer />} />
-                <Route path="/export/:id" element={<ExportComponent />} />
-
+                <Route path="/export/:projectId/:id" element={<ExportComponent />} />
                 {/* Landing Page */}
                 <Route path="/Home" element={<LandingPage />} />
-
                 {/* Clients */}
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/viewclient" element={<ViewClient />} />
-
                 {/* Projects */}
                 <Route path="/projects/:id" element={<NeoProjectTemplates />} />
                 <Route path="/viewAllHighlights" element={<ViewTemplatesHighlights />} />
-
                 {/* Profile */}
                 <Route path="/profile" element={<ProfileSettings />} />
               </Routes>
@@ -71,5 +61,4 @@ const Home = () => {
     </ProjectProvider>
   );
 };
-
 export default Home;
