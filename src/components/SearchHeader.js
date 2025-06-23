@@ -22,7 +22,7 @@ const SearchHeader = ({ projectId, hasProject = false }) => {
   }, [projectId]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 sm:p-6">
+    <div className="w-full  p-4 sm:p-6">
       <div className="flex items-center gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />

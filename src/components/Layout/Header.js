@@ -1,13 +1,29 @@
 import React from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; 
+import { MdArrowDropDown } from 'react-icons/md';
+import { useNavigate } from 'react-router-dom';
+import photo from "../../Assets/photo.png";
 
-const Header = () => {
+
+const Header = ({ user }) => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-    const navigate = useNavigate(); // ✅ Hook to navigate programmatically
+    const [isMobile, setIsMobile] = React.useState(false);
+    const navigate = useNavigate();
+
+    // Detect mobile (optional, you can use a library or context for this)
+    React.useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+     const handleProfileClick = () => {
+    navigate("/profile");
+  };
 
     return (
-        <header className="bg-white shadow-sm border-b border-gray-100  top-0 z-50">
+        <header className="bg-white shadow-sm border-b border-gray-100 top-0 z-50">
             <div className="p-2 mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex items-center">
@@ -34,19 +50,35 @@ const Header = () => {
                         </div>
                     </nav>
 
-                    {/* Desktop Auth Buttons */}
+                    {/* Desktop Auth/Profile */}
                     <div className="hidden md:flex items-center space-x-4">
-                        <button
-                            onClick={() => navigate('/signup')} // ✅ Navigate to /signup
-                            className="text-gray-700 hover:text-indigo-600 font-medium transition-colors">
-                            Create Account
-                        </button>
-                        <button
-                            onClick={() => navigate('/login')} // ✅ Navigate to /login
-                            className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-                        >
-                            Log in
-                        </button>
+                        {!user ? (
+                            <>
+                                <button
+                                    onClick={() => navigate('/signup')}
+                                    className="text-gray-700 hover:text-indigo-600 font-medium transition-colors">
+                                    Create Account
+                                </button>
+                                <button
+                                    onClick={() => navigate('/login')}
+                                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                                >
+                                    Log in
+                                </button>
+                            </>
+                        ) : (
+                            <div className="flex items-center space-x-2 cursor-pointer" onClick={handleProfileClick}>
+                                <img
+                                    src={user?.profilePic || photo}
+                                    alt="Profile"
+                                    className="rounded-full w-12 h-12 border-2 border-transparent hover:border-blue-400 transition-colors duration-200"
+                                />
+                                <div className="text-center text-gray-800">
+                                    <div className="text-sm font-semibold truncate w-full px-1">{user.name}</div>
+                                </div>
+                                <MdArrowDropDown className="w-6 h-6 mt-2 text-gray-600" />
+                            </div>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -62,18 +94,32 @@ const Header = () => {
                 {isMenuOpen && (
                     <div className="md:hidden border-t border-gray-100 py-4">
                         <div className="flex flex-col space-y-4">
-                            {/* Mobile menu items (unchanged) */}
-                            <div className="pt-4 border-t border-gray-100 flex flex-col space-y-3">
-                                <button onClick={() => navigate('/signup')} className="text-gray-700 font-medium text-left">
-                                    Create Account
-                                </button>
-                                <button
-                                    onClick={() => navigate('/login')} // ✅ Mobile login button
-                                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium"
-                                >
-                                    Log in
-                                </button>
-                            </div>
+                            {!user ? (
+                                <div className="pt-4 border-t border-gray-100 flex flex-col space-y-3">
+                                    <button onClick={() => navigate('/signup')} className="text-gray-700 font-medium text-left">
+                                        Create Account
+                                    </button>
+                                    <button
+                                        onClick={() => navigate('/login')}
+                                        className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium"
+                                    >
+                                        Log in
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center space-x-2 cursor-pointer" onClick={handleProfileClick}>
+                                    <img
+                                        src={user?.profilePic || photo}
+                                        alt="Profile"
+                                        className="rounded-full w-6 h-6 border-2 border-transparent hover:border-blue-400 transition-colors duration-200"
+                                         onClick={handleProfileClick}
+                                    />
+                                    <div className="text-center text-gray-800">
+                                        <div className="text-sm font-semibold truncate w-full px-1">{user.name}</div>
+                                    </div>
+                                    <MdArrowDropDown className="w-6 h-6 mt-2 text-gray-600" />
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route ,useLocation} from "react-router-dom";
 import { ProjectProvider } from "../../context/ProjectContext";
 import TemplateProvider from "../../context/TemplateContext";
 import Header from "../Header";
@@ -20,6 +20,9 @@ import ViewTemplatesHighlights from "../Template/ViewTemplatesHighlights";
 import ProfileSettings from "../Profile/ProfileSettings";
 const Home = () => {
   const [isNavigationVisible, setIsNavigationVisible] = useState(true);
+    const location = useLocation();
+
+    const hideNavigation = location.pathname === "/Home";
   // Toggle Navigation visibility
   const toggleNavigation = () => {
     setIsNavigationVisible((prevState) => !prevState);
@@ -27,8 +30,8 @@ const Home = () => {
   return (
     <ProjectProvider>
       <TemplateProvider>
-        <div className="flex flex-col h-screen bg-gray-50">
-          <Header toggleNavigation={toggleNavigation} />
+        <div className="flex flex-col  bg-gray-50">
+          {/* <Header toggleNavigation={toggleNavigation} /> */}
           <div className="flex overflow-hidden">
             {isNavigationVisible && <Navigation />}
             <main className="flex-1 overflow-y-auto p-4 sm:p-6">

@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-// import Header from './Header';
+import Header from './Header';
 // import Sidebar from './Sidebar';
 
 const Layout = ({ children }) => {
@@ -13,10 +13,10 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* <Header 
+      <Header 
         toggleNavigation={toggleSidebar}
         user={user}
-      /> */}
+      />
       
       <div className="flex">
         {/* <Sidebar
@@ -27,7 +27,7 @@ const Layout = ({ children }) => {
         />
          */}
         <main className="flex-1 min-h-screen">
-          <div className="p-6">
+          <div className="">
             {children}
           </div>
         </main>
