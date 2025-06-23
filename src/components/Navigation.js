@@ -102,7 +102,7 @@ const Navigation = () => {
   };
 
   return (
-    <div className={`bg-gray-100 border-r border-gray-300 flex flex-col h-full transition-all duration-300 ${isMobile ? 'w-12' : 'w-20'}`}>
+    <div className={`bg-gray-100 border-r h-screen border-gray-300 flex flex-col h-full transition-all duration-300 ${isMobile ? 'w-12' : 'w-20'}`}>
       {/* User Profile Section */}
       <div className={`flex flex-col items-center w-full border-b border-gray-300 ${isMobile ? 'py-2' : 'py-4'}`}>
         <img
@@ -166,7 +166,7 @@ const Navigation = () => {
         <div
           onClick={() => {
             logout();
-            navigate('/login');
+            navigate('/dashboard');
           }}
           className='flex flex-col items-center p-2 rounded-lg cursor-pointer w-full hover:bg-blue-100 transition duration-200'
         >

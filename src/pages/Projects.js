@@ -56,7 +56,7 @@ const Projects = () => {
 
   return (
     <div className="App">
-      <div className="flex text-gray-400 text-xs p-1"> RecentProjects</div>
+      {/* <div className="flex text-gray-400 text-xs "> RecentProjects</div> */}
       <div className="m-1">
         <SearchHeader />
       </div>

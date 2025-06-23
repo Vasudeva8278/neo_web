@@ -17,7 +17,8 @@ const Pricing = () => {
       ],
       buttonText: 'Get started',
       buttonStyle: 'bg-indigo-600 text-white hover:bg-indigo-700',
-      popular: false
+      popular: false,
+      accent: 'border-black-500'
     },
     {
       name: 'Starter',
@@ -33,7 +34,7 @@ const Pricing = () => {
       buttonText: 'Get started',
       buttonStyle: 'bg-indigo-600 text-white hover:bg-indigo-700',
       popular: false,
-      accent: 'border-orange-500'
+      accent: 'border-yellow-500'
     },
     {
       name: 'Business',
@@ -112,7 +113,7 @@ const Pricing = () => {
               key={index}
               className={`bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 relative ${
                 plan.popular ? 'ring-2 ring-green-500 scale-105' : ''
-              } ${plan.accent ? `border-t-4 ${plan.accent}` : ''}`}
+              } ${plan.accent ? `border-t-4  ${plan.accent}` : ''}`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">

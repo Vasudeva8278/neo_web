@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import Header from './Header';
-import Sidebar from './Sidebar';
+// import Sidebar from './Sidebar';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,15 +19,15 @@ const Layout = ({ children }) => {
       />
       
       <div className="flex">
-        <Sidebar
+        {/* <Sidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           user={user}
           logout={logout}
         />
-        
+         */}
         <main className="flex-1 min-h-screen">
-          <div className="p-6">
+          <div className="">
             {children}
           </div>
         </main>

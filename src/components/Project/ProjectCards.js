@@ -119,7 +119,7 @@ const ProjectCards = ({ projects, onEdit }) => {
           thumbnail={project.thumbnail}
           onEdit={onEdit}
         />
-      ))})
+      ))}
     </div>
   );
 };
