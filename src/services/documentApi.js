@@ -44,12 +44,9 @@ export const updateDocument = async (projectId, formData) => {
 };
 
 // Delete Document
-export const deleteDocument = async (projectId, documentId) => {
+export const deleteDocument = async (documentId) => {
   try {
-    const response = await api.delete(
-      `/projectDocs/${projectId}/documents/delete-doc/${documentId}`
-    );
-    console.log(response);
+    const response = await api.delete(`/document/delete-doc/${documentId}`);
     return response;
   } catch (error) {
     console.error("Failed to delete document", error);
@@ -110,7 +107,7 @@ export const getDocumentsByTemplateId = async (templateId) => {
 export const getDocumentsListByTemplateId = async (projectId, templateId) => {
   try {
     const response = await api.get(
-      `/document/template-documents/${templateId}`
+      `/document/${projectId}/template-documents/${templateId}`
     );
     return response.data;
   } catch (error) {
@@ -136,7 +133,7 @@ export const getHomePageDocuments = async (projectId) => {
 export const getDocumentsWithTemplateNames = async () => {
   try {
     const response = await api.get(
-      `projectDocs/documents/documents-with-template-names`
+      `document/documents-with-template-names`
     );
     return response.data;
   } catch (error) {
@@ -149,7 +146,7 @@ export const getDocumentsWithTemplateNames = async () => {
 export const downloadDocument = async (documentId, fileName) => {
   try {
     const response = await api.post(
-      `/projectDocs/${documentId}/download`,
+      `/document/${documentId}/download`,
       null,
       {
         responseType: "blob",
@@ -158,15 +155,12 @@ export const downloadDocument = async (documentId, fileName) => {
     const blob = new Blob([response.data], {
       type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     });
-
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", `${fileName.trim()}.docx`);
-
     document.body.appendChild(link);
     link.click();
-
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
     return "Success";
@@ -209,7 +203,9 @@ export const deleteDocument1 = async (documentId) => {
 // Add New Document
 export const addNewDocument = async (newDoc) => {
   try {
-    const response = await api.post(`/projectDocs/add-document`, newDoc);
+    // newDoc must include pid (project/template id)
+    const { pid, ...payload } = newDoc;
+    const response = await api.post(`/document/add-document/${pid}`, payload);
     return response.data;
   } catch (error) {
     console.error("Error while adding new document", error);
@@ -221,7 +217,7 @@ export const addNewDocument = async (newDoc) => {
 export const generateZipFile = async (documentObj, filename) => {
   try {
     const response = await api.post(
-      `/projectDocs/generate-documents`,
+      `/document/zip-documents`,
       documentObj,
       {
         responseType: "blob",
@@ -234,7 +230,6 @@ export const generateZipFile = async (documentObj, filename) => {
     document.body.appendChild(link);
     link.click();
     link.remove();
-
     console.log("Documents zipped successfully.");
     return "Success";
   } catch (error) {
@@ -292,6 +287,24 @@ export const sendDocumentViaEmail = async (documentId) => {
     return response;
   } catch (error) {
     console.error("Error while emailing document", error);
+    throw error;
+  }
+};
+
+export const updateTemplateContent = async (templateId, content) => {
+  try {
+    const response = await api.put(
+      `/templates/update-content/${templateId}`,
+      { content },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error while updating document content", error);
     throw error;
   }
 };

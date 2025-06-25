@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 // import SearchHeader from "../components/SearchHeader";
-import { getAllClients } from "../services/clientsApi";
+import { getAllClients, createClient } from "../services/clientsApi";
 // import folder from "../assets/folder.jpg";
 import { useNavigate } from "react-router-dom";
 import { FaUserPlus, FaFolder, FaEllipsisV, FaSearch } from "react-icons/fa";
@@ -17,6 +17,10 @@ const Clients = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { projects } = useContext(ProjectContext);
+  const [clientName, setClientName] = useState("");
+  const [clientDetails, setClientDetails] = useState([{ label: "", value: "" }]);
+  const [addClientError, setAddClientError] = useState(null);
+  const [addClientSuccess, setAddClientSuccess] = useState(null);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -39,11 +43,29 @@ const Clients = () => {
 
   const handleCreateClient = (projectData) => {
     navigate('/viewAllHighlights', {
-
-      
-
       state: { project: projectData },
     });
+  };
+
+  const handleNext = () => {
+    setAddClientError(null);
+    if (!clientName.trim()) {
+      setAddClientError("Client name is required.");
+      return;
+    }
+    if (!selectedProject) {
+      setAddClientError("Project selection is required.");
+      return;
+    }
+    navigate('/viewAllHighlights', {
+      state: {
+        project: JSON.parse(selectedProject),
+        clientName: clientName.trim(),
+      },
+    });
+    setIsModalOpen(false);
+    setClientName("");
+    setSelectedProject("");
   };
 
   const filteredClients = clients.filter(client =>
@@ -168,17 +190,31 @@ const Clients = () => {
           <h2 className="text-xl font-semibold text-gray-800 mb-6">
             Add New Client
           </h2>
-          
+          {addClientError && <div className="text-red-500 mb-2">{addClientError}</div>}
           <div className="space-y-4">
             <div>
+              <label htmlFor="clientName" className="block text-sm font-medium text-gray-700 mb-1">
+                Client Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="clientName"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                value={clientName}
+                onChange={e => setClientName(e.target.value)}
+                placeholder="Enter client name"
+                required
+              />
+            </div>
+            <div>
               <label htmlFor="projectSelect" className="block text-sm font-medium text-gray-700 mb-1">
-                Select Project
+                Select Project <span className="text-red-500">*</span>
               </label>
               <select
                 id="projectSelect"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                onChange={(e) => setSelectedProject(e.target.value)}
+                onChange={e => setSelectedProject(e.target.value)}
                 value={selectedProject}
+                required
               >
                 <option value="">Choose a project</option>
                 {projects.map((project) => (
@@ -188,7 +224,6 @@ const Clients = () => {
                 ))}
               </select>
             </div>
-
             <div className="flex justify-end space-x-3">
               <button
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
@@ -200,10 +235,10 @@ const Clients = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                onClick={() => selectedProject && handleCreateClient(JSON.parse(selectedProject))}
-                disabled={!selectedProject}
+                onClick={handleNext}
+                disabled={!clientName.trim() || !selectedProject}
               >
-                Create Client
+                Next
               </motion.button>
             </div>
           </div>

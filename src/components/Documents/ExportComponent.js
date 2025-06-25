@@ -1,33 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import HighlightTable from '../../pages/HighlightTable';
-import { useLocation, useParams } from 'react-router-dom';
-import { getDocumentsByTemplateId } from '../../services/documentApi';
+import { useParams } from 'react-router-dom';
+import { getTemplateHighlights } from '../../services/templateApi';
 
 
 const ExportComponent = () => {
-  const { id } = useParams();
+  const { id, projectId } = useParams();
   const [highlightsArray, setHighlightsArray] = useState([]);
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const location = useLocation(); // Gives you access to the current URL including the query string
-  const queryParams = new URLSearchParams(location.search);
-  const projectId = queryParams.get('projectId');
 
 
   useEffect(() => {
     const fetchDocument = async () => {
       if (id) {
         try {
-          const response = await getDocumentsByTemplateId(id);
-          const result = response[0];
-          if (result) {
-            let arrayData = [];
-            arrayData.push(result.highlights);
-            setHighlightsArray(arrayData);
-            setFileName(result.fileName);
+          const response = await getTemplateHighlights(id);
+          if (response) {
+            setHighlightsArray(response.highlights);
+            setFileName(response.fileName || '');
           } else {
-            setError('No document found for this template.');
+            setHighlightsArray([]);
           }
         } catch (error) {
           setError('Failed to fetch document');
@@ -51,11 +45,12 @@ const ExportComponent = () => {
 
   return (
     <div className="p-2">
-     
-      {highlightsArray.length > 0 && (
-        <HighlightTable highlightsArray={highlightsArray} templateId={id}  filename={fileName}/>
-      ) }
-    
+      <HighlightTable
+        highlightsArray={highlightsArray}
+        templateId={id}
+        filename={fileName}
+        projectId={projectId}
+      />
     </div>
   );
 };

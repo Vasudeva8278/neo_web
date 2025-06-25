@@ -2,6 +2,10 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TemplateContext } from '../../context/TemplateContext';
 import { SlOptionsVertical } from "react-icons/sl";
+import { deleteTemplate } from '../../services/templateApi';
+import { toast } from 'react-toastify';
+import { deleteHighlightsByTemplateId } from '../../services/highlightsApi';
+
 const Card = ({ docObj, documentId, name, thumbnail, content, handleDelete, handleDownload, template, projectId }) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -32,7 +36,7 @@ const Card = ({ docObj, documentId, name, thumbnail, content, handleDelete, hand
   }
 
   const handleCreateDocuments = (docId) => {
-    navigate(`/export/${docId}?projectId=${projectId}`);
+    navigate(`/export/${projectId}/${docId}`);
   };
 
   const toggleMenu = () => {
@@ -50,9 +54,10 @@ const Card = ({ docObj, documentId, name, thumbnail, content, handleDelete, hand
     handleDownload(docObj);
   }
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     setDeleteTemplateModal(false);
-    handleDelete(documentId);
+    await handleDelete(documentId);
+
   }
 
   useEffect(() => {
@@ -231,14 +236,24 @@ const Card = ({ docObj, documentId, name, thumbnail, content, handleDelete, hand
 };
 
 const TemplateCards = ({ template, projectId }) => {
-  const { templates } = useContext(TemplateContext);
+  const { templates, setTemplates } = useContext(TemplateContext);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const handleDeleteTemplate = (templateId) => {
-    // Add delete logic here
-    console.log('Deleting template:', templateId);
+  const handleDeleteTemplate = async (templateId) => {
+    try {
+      // You may need projectId for the API call
+      await deleteTemplate(projectId, templateId);
+      toast.success('Template deleted successfully!');
+      // Option 1: Remove from UI
+      setTemplates(prev => prev.filter(t => t._id !== templateId));
+      // Option 2: Reload page or refetch templates (if using context, trigger context update)
+      window.location.reload();
+    } catch (error) {
+      toast.error('Failed to delete template.');
+      console.error('Deleting template failed:', error);
+    }
   };
 
   const handleDownload = (template) => {

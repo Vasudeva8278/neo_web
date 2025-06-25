@@ -12,14 +12,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+
+
 // Create Highlight
 export const createHighlight = async (formData) => {
   try {
-    const response = await api.post(`/projects`, formData, {
+    const response = await api.post(`/highlights`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error while creating highlight", error);
@@ -28,14 +31,10 @@ export const createHighlight = async (formData) => {
 };
 
 // Update Highlight
-export const updateHighlight = async (projectId, formData) => {
+export const updateHighlight = async (highlightId, payload) => {
   try {
-    const response = await api.put(`/projects/${projectId}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
+    const response = await api.put(`/highlights/${highlightId}`, payload);
+    return response.data.data;
   } catch (error) {
     console.error("Error while updating highlight", error);
     throw error;
@@ -81,20 +80,9 @@ export const saveTemplateContent = async (templateId, updatedObj) => {
 };
 
 // Delete Highlight
-export const deleteHighlight = async (templateId, highlightId, content) => {
+export const deleteHighlight = async (highlightId) => {
   try {
-    const response = await api.delete(
-      `/templates/delete-highlight/${templateId}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: {
-          highlightId,
-          content,
-        },
-      }
-    );
+    const response = await api.delete(`/highlights/${highlightId}`);
     return response.data;
   } catch (error) {
     console.error("Failed to delete highlight", error);
@@ -156,4 +144,34 @@ export const uploadImgforDocument = async (
 // Get Image Link
 export const getImgLink = async (newImgName) => {
   return `${process.env.REACT_APP_BASE_URL}/api/image/${newImgName}`;
+};
+
+export const getHighlightsByTemplateId = async (templateId) => {
+  try {
+    const response = await api.get(`/highlights/template/${templateId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error("Error while fetching highlights by template ID", error);
+    throw error;
+  }
+};
+
+export const postHighlights = async (payload) => {
+  try {
+    const response = await api.post('/highlights', payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error while posting highlights", error);
+    throw error;
+  }
+};
+
+export const deleteHighlightsByTemplateId = async (templateId) => {
+  try {
+    const response = await api.delete(`/delete-highlight/${templateId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to delete highlights by templateId", error);
+    throw error;
+  }
 };

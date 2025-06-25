@@ -48,43 +48,32 @@ const DesignTemplate = ({ onClose, value, hasProject }) => {
       toast.error("Please select a DOCX file to upload.");
       return;
     }
-
-    if (!selectedProject) {
-      toast.error("Please select a project.");
+    if (!selectedProject || selectedProject.trim().length === 0 || selectedProject === "null") {
+      toast.error("Please select a valid project.");
       return;
     }
 
-    try {
-      setLoading(true);
-      setError("");
-      setConversionStatus("Uploading template...");
+    // IMMEDIATE FEEDBACK
+    setLoading(true);
+    setConversionStatus("Uploading... You can continue working.");
 
-      const response = await uploadTemplate(selectedProject, file);
-
-      if (response) {
+    // Start upload in background
+    uploadTemplate(selectedProject, file)
+      .then(response => {
         toast.success("Template uploaded successfully!");
         setConversionStatus("Template uploaded successfully!");
-        console.log('Template created:', response);
-
         if (response._id && selectedProject) {
           handleSelectDocument(response._id);
         }
-
-        setTimeout(() => {
-          setConversionStatus("");
-        }, 3000);
-      }
-    } catch (error) {
-      console.error("Template upload error:", error);
-      setError(error.message || "Failed to upload template.");
-      toast.error(error.message || "Failed to upload template.");
-      setConversionStatus("Failed to upload template. Please try again.");
-      setTimeout(() => {
-        setConversionStatus("");
-      }, 3000);
-    } finally {
-      setLoading(false);
-    }
+        setTimeout(() => setConversionStatus(""), 3000);
+      })
+      .catch(error => {
+        setError(error.message || "Failed to upload template.");
+        toast.error(error.message || "Failed to upload template.");
+        setConversionStatus("Failed to upload template. Please try again.");
+        setTimeout(() => setConversionStatus(""), 3000);
+      })
+      .finally(() => setLoading(false));
   };
 
   const convertFiled = async (content, file) => {
@@ -101,9 +90,9 @@ const DesignTemplate = ({ onClose, value, hasProject }) => {
 
     try {
       // Use the corrected createTemplate function
-      const response = await createTemplate(selectedProject, formData);
+      const response = await createTemplate(formData);
       
-      if (response && response.success) {
+      if (response) {
         setLoading(false);
         handleSelectDocument(response._id);
         setConversionStatus("Template created successfully!");
@@ -130,8 +119,8 @@ const DesignTemplate = ({ onClose, value, hasProject }) => {
   };
 
   const handleSave = async () => {
-    if (!selectedProject) {
-      toast.error("Please select a project.");
+    if (!selectedProject || selectedProject.trim().length === 0 || selectedProject === "null") {
+      toast.error("Please select a valid project.");
       return;
     }
     if (!file) {
@@ -142,6 +131,7 @@ const DesignTemplate = ({ onClose, value, hasProject }) => {
     try {
       setLoading(true);
       setError("");
+      console.log("Saving with projectId:", selectedProject);
 
       const container = document.getElementById("container");
       if (!container) {

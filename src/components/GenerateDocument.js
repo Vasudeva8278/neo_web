@@ -1,24 +1,62 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { GoProjectTemplate } from "react-icons/go";
-import { getTemplatesByProjectId } from "../services/templateApi";
-//import { getAllProjects } from '../services/projectApi';
+import { getHighlightsByTemplateId } from "../services/highlightsApi";
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchTemplatesByProjectId } from '../redux/slice/templateSlice';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { ProjectContext } from "../context/ProjectContext";
-import { TemplateContext } from "../context/TemplateContext";
+import { fetchDocumentsWithTemplateNames } from '../redux/slice/documentSlice';
+import { getDocumentsWithTemplateNames } from '../services/documentApi';
+import { createAsyncThunk } from '@reduxjs/toolkit';
 
 const GenerateDocument = ({ onClose, value, hasProject }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [projectId, setProjectId] = useState(value || "");
   const [templateId, setTemplateId] = useState("");
-  const templateContext = useContext(TemplateContext);
-  const templates = templateContext?.templates || [];
-  //const [projects, setProjects] = useState([]);
+  const [highlights, setHighlights] = useState([]);
   const { projects } = useContext(ProjectContext);
-  // Remove the duplicate declaration of 'templates'
-  // const { templates } = useContext(TemplateContext);
+  const { templates, status, error } = useSelector((state) => state.templates);
+  const { documents, status: documentStatus, error: documentError } = useSelector(state => state.documents);
+  const [loading, setLoading] = useState(true);
+  const [selectedProject, setSelectedProject] = useState(projectId || '');
+
+  console.log('projectId:', projectId, 'value:', value);
+
+  useEffect(() => {
+    if (projectId) {
+      dispatch(fetchTemplatesByProjectId(projectId));
+    }
+  }, [projectId, dispatch]);
+
+  useEffect(() => {
+    if (status === 'succeeded' || status === 'failed') {
+      setLoading(false);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (templateId) {
+      getHighlightsByTemplateId(templateId)
+        .then(setHighlights)
+        .catch((err) => {
+          console.error("Failed to fetch highlights:", err);
+          toast.error("Failed to load highlights for the selected template.");
+        });
+    } else {
+      setHighlights([]);
+    }
+  }, [templateId]);
+
+  useEffect(() => {
+    dispatch(fetchDocumentsWithTemplateNames());
+  }, [dispatch]);
+
+  useEffect(() => {
+    setLoading(false);
+  }, []);
 
   const handleTemplateChange = (e) => {
     setTemplateId(e.target.value);
@@ -42,10 +80,20 @@ const GenerateDocument = ({ onClose, value, hasProject }) => {
     navigate(`/export/${templateId}?projectId=${projectId}`);
   };
 
+  const handlePreview = () => {
+    if (!templateId) {
+      toast.error("Please select a template to preview");
+      return;
+    }
+    navigate(`/document/${templateId}`);
+  };
+
   console.log("All templates:", templates);
   console.log("Current projectId:", projectId);
 
-  const filteredTemplates = templates; // Ignore projectId filter for now
+  const filteredTemplates = templates;
+
+  if (status === 'loading') return <div>Loading...</div>;
 
   return (
     <div className="h-screen overflow-y-auto">
@@ -102,7 +150,7 @@ const GenerateDocument = ({ onClose, value, hasProject }) => {
                       disabled={hasProject}
                     >
                       <option value="">Select project</option>
-                      {projects.map((project) => (
+                      {(projects || []).map((project) => (
                         <option key={project._id} value={project._id}>
                           {project.projectName}
                         </option>
@@ -114,7 +162,7 @@ const GenerateDocument = ({ onClose, value, hasProject }) => {
                       htmlFor="templateName"
                       className="block text-gray-700 font-medium mb-2"
                     >
-                      Template Name*
+                      Templates
                     </label>
                     <select
                       className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -122,13 +170,48 @@ const GenerateDocument = ({ onClose, value, hasProject }) => {
                       onChange={handleTemplateChange}
                     >
                       <option value="">Select Template</option>
-                      {filteredTemplates.map((template) => (
+                      {(filteredTemplates || []).map((template) => (
                         <option key={template._id} value={template._id}>
                           {template.fileName}
                         </option>
                       ))}
                     </select>
                   </div>
+                  {highlights && highlights.length > 0 && (
+                    <div className="mb-4">
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Editable Fields
+                      </label>
+                      <div className="p-2 border rounded-md bg-gray-50">
+                        {highlights.map((highlight, index) => (
+                          <div key={index}>
+                            {Array.isArray(highlight.highlights) && highlight.highlights.length > 0 ? (
+                              highlight.highlights.map((h, idx) => (
+                                <div key={idx}>
+                                  {Array.isArray(h.labels) && h.labels.length > 0 ? (
+                                    h.labels.map((lbl, lidx) => (
+                                      <span
+                                        key={lidx}
+                                        className="inline-block bg-yellow-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"
+                                      >
+                                        {lbl.label}: {lbl.value}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-gray-500">No labels</span>
+                                  )}
+                                </div>
+                              ))
+                            ) : (
+                              <span className="inline-block bg-yellow-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+                                {highlight.label ? `${highlight.label}: ${highlight.text}` : 'No labels'}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-end">
                     <button
                       type="button"
@@ -136,6 +219,13 @@ const GenerateDocument = ({ onClose, value, hasProject }) => {
                       onClick={onClose}
                     >
                       Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handlePreview}
+                      className="bg-green-500 hover:bg-green-700 text-white font-normal py-2 px-4 rounded mr-2"
+                    >
+                      Preview
                     </button>
                     <button
                       type="submit"

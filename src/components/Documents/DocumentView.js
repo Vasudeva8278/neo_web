@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import ReactHtmlParser from "react-html-parser";
+import parse from 'html-react-parser';
 import {
   FaBold,
   FaItalic,
@@ -18,6 +18,7 @@ import {
   getDocumentById,
   sendDocumentViaEmail,
   updateDocumentContent,
+  updateTemplateContent,
 } from "../../services/documentApi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -26,6 +27,8 @@ function DocumentView(props) {
   const navigate = useNavigate();
   const { id: paramId } = useParams();
   const id = props.id || paramId;
+  const location = useLocation();
+  const { documentIds, currentIndex } = location.state || {};
   const [editorContent, setEditorContent] = useState("");
   const [fileName, setFileName] = useState("");
   const [isEdit, setIsEdit] = useState(false);
@@ -42,7 +45,6 @@ function DocumentView(props) {
   const [fontSize, setFontSize] = useState("12pt"); // Default font size
   const [fontFamily, setFontFamily] = useState("Arial"); // Default font style
   const editorRef = useRef(null);
-  const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const projectId = queryParams.get("projectId");
   const tempId = queryParams.get("templateId");
@@ -336,7 +338,7 @@ function DocumentView(props) {
     setIsEdit(true);
     setLoading(true);
     try {
-      const response = await updateDocumentContent(
+      const response = await updateTemplateContent(
         id,
         editorRef.current.innerHTML
       );
@@ -557,28 +559,99 @@ function DocumentView(props) {
     format("fontName", family);
   };
 
+  const handleNext = () => {
+    if (documentIds && currentIndex < documentIds.length - 1) {
+      const nextIndex = currentIndex + 1;
+      const nextDocId = documentIds[nextIndex];
+      navigate(`/docview/${nextDocId}`, {
+        state: { documentIds, currentIndex: nextIndex },
+        replace: true,
+      });
+    }
+  };
+
+  const handlePrevious = () => {
+    if (documentIds && currentIndex > 0) {
+      const prevIndex = currentIndex - 1;
+      const prevDocId = documentIds[prevIndex];
+      navigate(`/docview/${prevDocId}`, {
+        state: { documentIds, currentIndex: prevIndex },
+        replace: true,
+      });
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEdit(true);
+  };
+
   return (
-    <div className='flex w-full h-screen p-4'>
-      <div className='w-3/4 p-4 flex flex-col'>
-        {loading && (
-          <div className='fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50'>
-            <div className='loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32'></div>
+    <div className="flex w-full h-screen p-4 bg-gray-100">
+      <div className="flex-1 flex flex-col">
+        {documentIds && (
+          <div className="flex justify-between items-center p-4 bg-white rounded-t-lg border-b">
+            <button
+              onClick={handlePrevious}
+              disabled={currentIndex === 0}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
+            >
+              &larr; Previous
+            </button>
+            <span>
+              {currentIndex + 1} / {documentIds.length}
+            </span>
+            <button
+              onClick={handleNext}
+              disabled={currentIndex === documentIds.length - 1}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
+            >
+              Next &rarr;
+            </button>
           </div>
         )}
-        <div
-          ref={editorRef}
-          contentEditable
-          className='border p-4 bg-white shadow-sm rounded-lg flex-grow print-content'
-          style={{ height: "500px", overflow: "auto" }}
-          onFocus={updateActiveFormats}
-          //onInput={handleInput}
-        >
-          {ReactHtmlParser(editorContent)}
+        <div className="w-full p-4 flex flex-col bg-white shadow-lg">
+          {loading && (
+            <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50">
+              <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
+            </div>
+          )}
+          <div className='flex items-center justify-between border-b pb-2 mb-4'>
+            <h1 className='text-2xl font-bold text-gray-800'>{fileName}</h1>
+            <div className='flex items-center space-x-2'>
+              <button
+                onClick={handleEdit}
+                className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600'
+              >
+                Edit
+              </button>
+              {isEdit && (
+                <button
+                  onClick={handleSave}
+                  className='px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600'
+                >
+                  Save
+                </button>
+              )}
+              <button
+                onClick={handlePrint}
+                className='px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300'
+              >
+                Print
+              </button>
+            </div>
+          </div>
+          <div
+            ref={editorRef}
+            contentEditable={isEdit}
+            className='w-full p-4 border rounded-lg min-h-[600px] bg-white'
+            onInput={handleInput}
+            dangerouslySetInnerHTML={{ __html: editorContent }}
+          ></div>
         </div>
       </div>
-      <div className='w-1/4 p-4 bg-gray-100 shadow-md rounded-lg flex flex-col'>
-        <h2 className='text-lg font-semibold mb-4'>Options</h2>
-        <div className='flex gap-2 mb-4'>
+      <div className="w-1/4 p-4 bg-gray-100 shadow-md rounded-lg flex flex-col">
+        <h2 className="text-lg font-semibold mb-4">Options</h2>
+        <div className="flex gap-2 mb-4">
           <button
             onClick={() => format("bold")}
             className={`p-2 rounded hover:bg-gray-200 ${
@@ -696,32 +769,11 @@ function DocumentView(props) {
           </select>
         </div>
         <button
-          onClick={handleSave}
-          className='mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
-        >
-          Save
-        </button>
-        {/*  <button
-          onClick={handleExport}
-          disabled={isEdit}
-          className='mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
-        >
-          Download
-        </button> */}
-        <button
           onClick={handleSendEmail}
           disabled={isEdit}
           className='mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
         >
           Share in Email
-        </button>
-
-        <button
-          onClick={handlePrint}
-          disabled={isEdit}
-          className='mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
-        >
-          Print Document
         </button>
         <button
           onClick={handleBack}

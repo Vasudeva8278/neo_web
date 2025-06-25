@@ -23,11 +23,13 @@ import {
   getAllTemplates,
 } from "../services/templateApi";
 import {
-  deleteDocument1,
+  deleteDocument,
   downloadDocument1,
   getDocumentsWithTemplateNames,
 } from "../services/documentApi";
 import SearchHeader from "./SearchHeader";
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchDocumentsWithTemplateNames } from '../redux/slice/documentSlice';
 
 const Neo = () => {
   const navigate = useNavigate();
@@ -41,6 +43,9 @@ const Neo = () => {
   const contentRef = useRef(null);
   const [conversionStatus, setConversionStatus] = useState("");
   const [uploading, setUploading] = useState(false);
+  const dispatch = useDispatch();
+  const { documents: reduxDocuments, status: reduxStatus, error: reduxError } = useSelector(state => state.documents);
+  const [optionsMenuOpen, setOptionsMenuOpen] = useState(null);
 
   const handleSelectDocument = (docId) => {
     navigate(`/document/${docId}`);
@@ -73,17 +78,10 @@ const Neo = () => {
     e.preventDefault();
     setIsDragging(false);
     const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      onGetFile(file);
-    }
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      onGetFile(file);
-    }
+    
   };
 
   const onGetFile = async (file) => {
@@ -161,8 +159,7 @@ const Neo = () => {
       const pages = container.querySelectorAll(".docx-page");
       if (pages.length > 0) {
         const totalHeight = Array.from(pages).reduce(
-          (height, page) => height + page.scrollHeight,
-          0
+          (height, page) => height + page.scrollHeight
         );
         container.style.height = `${totalHeight}px`;
       }
@@ -173,17 +170,16 @@ const Neo = () => {
 
   useEffect(() => {
     fetchTemplates();
-    fetchDocuments();
-  }, []);
+    dispatch(fetchDocumentsWithTemplateNames());
+  }, [dispatch]);
 
   const fetchDocuments = async () => {
     try {
       const response = await getDocumentsWithTemplateNames();
-      const data = response;
-      setDocTemplates(data);
+      setDocTemplates(response.data);
     } catch (error) {
       setError("Failed to fetch documents");
-      console.error("Failed to fetch documents", error);
+      console.error("Failed to fetch documents", error.response || error.message || error);
     } finally {
       setLoading(false);
     }
@@ -201,7 +197,7 @@ const Neo = () => {
       setRecentDocuments(sortedData);
     } catch (error) {
       setError("Failed to fetch documents");
-      console.error("Failed to fetch documents", error);
+      console.error("Failed to fetch documents", error.response || error.message || error);
     } finally {
       setLoading(false);
     }
@@ -223,8 +219,8 @@ const Neo = () => {
     }
   };
   const handleDeleteDocument = async (doc_id) => {
-    console.log("deleteing document", doc_id);
-    const response = await deleteDocument1(doc_id);
+    console.log("deleting document", doc_id);
+    const response = await deleteDocument(doc_id);
     if (response) {
       fetchTemplates();
       fetchDocuments();
@@ -280,6 +276,9 @@ const Neo = () => {
 
   return (
     <div className='flex ml-12'>
+
+
+      
       <div className='flex flex-col w-full m-2'>
         <div className='flex text-gray-400 text-xs p-3'>All Templates </div>
         <SearchHeader />
@@ -370,16 +369,76 @@ const Neo = () => {
             <h2 className='text-2xl font-semibold mb-4 text-left'>
               Documents with Template Names
             </h2>
-            <div className='flex justify-center space-x-4'>
-              {loading && <div>Loading...</div>}
-              {error && <div>{error}</div>}
-            {/*   <TemplateCards
-                documents={docTemplates}
-                template={true}
-                handleDeleteTemplate={handleDeleteDocument}
-                handleDownload={handleDocumentDownload}
-                className='border p-4 rounded-lg shadow-md'
-              /> */}
+            <div className='flex flex-wrap gap-6 justify-start'>
+              {reduxStatus === 'loading' && <div>Loading...</div>}
+              {reduxError && <div className="text-red-500">{reduxError}</div>}
+              {reduxStatus === 'succeeded' && reduxDocuments && reduxDocuments.length > 0 && (
+                reduxDocuments.map((doc) => {
+                  console.log(doc);
+                  return (
+                    <div key={doc._id} className="bg-white rounded-xl shadow-md p-6 w-64 flex flex-col items-center relative border border-gray-200 group">
+                      {/* File Icon with Preview Symbol */}
+                      <div className="relative mb-4">
+                        <FaFileAlt className="text-blue-500 text-6xl" />
+                      </div>
+                      {/* File Name */}
+                      <div className="font-semibold text-lg text-center truncate w-full" title={doc.fileName}>{doc.fileName}</div>
+                      {/* Template Name */}
+
+                      {/* Options menu */}
+                      <div className="absolute top-3 right-3 z-10">
+                        <div className="relative">
+                          <button
+                            className="p-1.5 text-gray-400 rounded-md hover:bg-gray-100 hover:text-gray-600 focus:outline-none transition-all duration-200"
+                            onClick={e => {
+                              e.stopPropagation();
+                              setOptionsMenuOpen(doc._id);
+                            }}
+                          >
+                            <RiMenuFill />
+                          </button>
+                          {optionsMenuOpen === doc._id && (
+                            <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-20 py-1 text-sm">
+                              <button
+                                className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  navigate(`/docview/${doc._id}?templateId=${doc.templateId}`);
+                                  setOptionsMenuOpen(null);
+                                }}
+                              >
+                                <FaFileAlt className="mr-2" /> View
+                              </button>
+                              <button
+                                className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  handleDocumentDownload(doc);
+                                  setOptionsMenuOpen(null);
+                                }}
+                              >
+                                <FaDownload className="mr-2" /> Download
+                              </button>
+                              <button
+                                className="flex items-center w-full px-3 py-2 text-red-500 hover:bg-red-50 transition-colors duration-200"
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  handleDeleteDocument(doc._id);
+                                  setOptionsMenuOpen(null);
+                                }}
+                              >
+                                <FaTrash className="mr-2" /> Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              
+                
             </div>
           </div>
         </div>

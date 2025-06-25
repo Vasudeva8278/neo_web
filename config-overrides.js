@@ -10,19 +10,26 @@ module.exports = function override(config) {
         "https": require.resolve('https-browserify'),
         "os": require.resolve('os-browserify'),
         "url": require.resolve('url'),
-        "buffer": require.resolve('buffer/'),
-        "process": require.resolve('process/browser')
-    }
+        "buffer": require.resolve('buffer/')
+    };
     
     config.plugins = (config.plugins || []).concat([
         new webpack.ProvidePlugin({
-            process: 'process/browser',
+            process: 'process/browser.js',
             Buffer: ['buffer', 'Buffer']
-        }),
-        new webpack.DefinePlugin({
-            'process.env': JSON.stringify(process.env)
         })
-    ])
+    ]);
+
+    config.module.rules.push({
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: "javascript/auto"
+    });
+
+    config.ignoreWarnings = [
+        ...(config.ignoreWarnings || []),
+        /Failed to parse source map from '.*docx-preview.*'/,
+    ];
     
     return config;
 }

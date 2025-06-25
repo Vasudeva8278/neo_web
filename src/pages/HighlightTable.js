@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import Instructions from "../components/Instructions";
 import axios from "axios";
 import {
   PlusCircleIcon,
@@ -15,7 +16,6 @@ import imageIcon from "../Assets/image.png";
 import tableIcon from "../Assets/table.png";
 import DocumentHighlightsModal from "../components/Documents/DocumentHighlightsModal";
 import { ViewListIcon } from "@heroicons/react/solid";
-import Instructions from "../components/Instructions";
 import TableHeader from "../components/TableHeader";
 import { FaArrowRight } from "react-icons/fa";
 import {
@@ -35,11 +35,18 @@ import {
   getDocumentsListByTemplateId,
   updateDocHighlightText,
 } from "../services/documentApi";
+import { getTemplateById, getAllTemplates } from '../services/templateApi';
 import TooltipIcon from "../components/TooltipIcon";
 import FileCarousel from "../components/FileCarousel";
 import Carousel from "../components/FileCarousel";
+import { getHighlightsByTemplateId } from '../services/highlightsApi';
 
-const HighlightTable = ({ highlightsArray, templateId, filename }) => {
+const HighlightTable = ({
+  highlightsArray,
+  templateId,
+  filename,
+  projectId,
+}) => {
   const navigate = useNavigate();
   const [tableData, setTableData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,53 +63,109 @@ const HighlightTable = ({ highlightsArray, templateId, filename }) => {
 
   const location = useLocation(); // Gives you access to the current URL including the query string
   const queryParams = new URLSearchParams(location.search);
-  const projectId = queryParams.get("projectId");
+  // const projectId = queryParams.get("projectId");
 
   console.log(templateId, filename);
   const fetchData = async () => {
-    try {
-      const response = await getDocumentsListByTemplateId(projectId, templateId);
-      setTemplateName(response?.templateName || "Template");
-      const data = response?.documents || [];
-      setMsDocument(data);
-      console.log(data);
-
-      const items =
-        data.length > 0
-          ? data.map((item) => ({
-              id: item._id,
-              image: item?.thumbnail, // Assuming `thumbnail` exists in each item
-              title: item.fileName,
-              description: (item.highlights || []) // Guard against undefined highlights
-                .filter((highlight) => highlight.type === "text")
-                .map((highlight) => highlight.text)
-                .join(" "),
-            }))
-          : [];
-
+    if (highlightsArray && highlightsArray.length > 0) {
+      // If highlightsArray is passed, use it to populate the table for a new document
+      const newDoc = {
+        id: uuidv4(),
+        templateId,
+        fileName: "DocName1",
+        highlights: highlightsArray,
+      };
+      setTableData([newDoc]);
+      setMsDocument([newDoc]);
+      const items = [{
+        id: newDoc.id,
+        image: null,
+        title: newDoc.fileName,
+        description: (newDoc.highlights || [])
+          .filter((highlight) => highlight.type === "text")
+          .map((highlight) => highlight.text)
+          .join(" "),
+      }];
       setItems(items);
-      setTableData(
-        data.length > 0
-          ? data
-          : (highlightsArray || []).map((highlight) => ({ // Guard against undefined prop
-              ...highlight,
-              id: uuidv4(),
-              templateId,
-            }))
-      );
-    } catch (error) {
-      console.error("Failed to fetch and process highlight table data:", error);
-      // Optionally, set an error state here to inform the user.
+    } else {
+      // Otherwise, fetch existing documents for the template
+      try {
+        const response = getDocumentsListByTemplateId(projectId, templateId);
+        setTemplateName(response?.templateName || "Template");
+        const data = response?.documents || [];
+        setMsDocument(data);
+
+        const items = data.map((item) => ({
+          id: item._id,
+          image: item?.thumbnail,
+          title: item.fileName,
+          description: (item.highlights || [])
+            .filter((highlight) => highlight.type === "text")
+            .map((highlight) => highlight.text)
+            .join(" "),
+        }));
+
+        setItems(items);
+        setTableData(data);
+      } catch (error) {
+        console.error("Failed to fetch and process highlight table data:", error);
+      }
     }
   };
 
   useEffect(() => {
-    console.log(templateId);
-    fetchData();
-  }, [highlightsArray, templateId]);
+    const fetchHighlights = async () => {
+      if (!highlightsArray && templateId) {
+        try {
+          const data = await getHighlightsByTemplateId(templateId);
+          // If the API returns an array of highlight objects, use as is
+          // If it returns an object with a 'highlights' array, use that
+          const highlights = Array.isArray(data) ? data : data.highlights || [];
+          const newDoc = {
+            id: uuidv4(),
+            templateId,
+            fileName: filename || 'DocName1',
+            highlights: highlights,
+          };
+          setTableData([newDoc]);
+          setMsDocument([newDoc]);
+          const items = [{
+            id: newDoc.id,
+            image: null,
+            title: newDoc.fileName,
+            description: (newDoc.highlights || [])
+              .filter((highlight) => highlight.type === 'text')
+              .map((highlight) => highlight.text)
+              .join(' '),
+          }];
+          setItems(items);
+        } catch (error) {
+          console.error('Failed to fetch highlights by templateId:', error);
+        }
+      } else {
+        fetchData();
+      }
+    };
+    fetchHighlights();
+    // eslint-disable-next-line
+  }, [templateId, highlightsArray]);
 
-  const viewAllDocument = (docId) => {
-    navigate(`/docviewall/${templateId}?projectId=${projectId}`);
+  const viewAllDocument = async () => {
+    try {
+      const templates = await getAllTemplates();
+      if (templates && templates.length > 0) {
+        const templateIds = templates.map((t) => t._id);
+        const firstTemplateId = templateIds[0];
+        navigate(`/template/${firstTemplateId}`, {
+          state: { templateIds, currentIndex: 0, projectId },
+        });
+      } else {
+        alert("No templates found for this project.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch templates for preview", error);
+      alert("Failed to load templates for preview.");
+    }
   };
   const handleInputChange = (value, rowIndex, cellIndex) => {
     const updatedTableData = [...tableData];
@@ -123,9 +186,18 @@ const HighlightTable = ({ highlightsArray, templateId, filename }) => {
     }
   };
   const handleViewDocument = async (doc) => {
-    const doc_id = doc.id ? doc.id : doc._id;
-    console.log("viewing document", doc_id);
-    navigate(`/docview/${doc_id}`);
+    if (!doc) return;
+    const doc_id = doc._id || doc.id;
+    const allDocIds = msDocument.map((d) => d._id);
+    const currentDocIndex = msDocument.findIndex((d) => d._id === doc_id);
+
+    if (currentDocIndex !== -1) {
+      navigate(`/docview/${doc_id}`, {
+        state: { documentIds: allDocIds, currentIndex: currentDocIndex },
+      });
+    } else {
+      navigate(`/docview/${doc_id}`);
+    }
   };
 
   const displayListofDocuments = async () => {
@@ -200,27 +272,45 @@ const HighlightTable = ({ highlightsArray, templateId, filename }) => {
   };
 
   const handleAddRow = async () => {
-    if (tableData[0].highlights) {
+    let blueprint = highlightsArray;
+
+    if (!blueprint || blueprint.length === 0) {
+      try {
+        const templateData = await getTemplateById(templateId);
+        blueprint = templateData.highlights;
+      } catch (error) {
+        console.error("Failed to fetch template structure:", error);
+        alert("Could not load template structure to add a new document.");
+        return;
+      }
+    }
+
+    if (blueprint) {
       const newCells = {
         id: uuidv4(),
         templateId,
-        fileName: "DocName" + tableData.length,
-        highlights: tableData[0].highlights.map((cell) => ({
+        projectId,
+        fileName: "DocName" + msDocument.length,
+        highlights: blueprint.map((cell) => ({
           id: cell.id,
           label: cell.label,
-          text: cell.text,
+          text: "",
           type: cell.type,
         })),
       };
-      const response = await addNewDocument(newCells);
-      const { id } = response;
-      newCells.id = id;
-      setTableData([...tableData, newCells]);
+      await addNewDocument(newCells);
+      fetchData();
+    } else {
+      console.error("Cannot add a new row: no highlight blueprint available.");
     }
   };
   const handleExportAll = async (event) => {
     event.preventDefault();
     const documentIds = (msDocument || []).map((doc) => doc._id);
+    if(documentIds.length === 0){
+      alert("No documents to export");
+      return;
+    }
     const documentData = {
       documentIds,
       folderName: filename,
@@ -237,123 +327,160 @@ const HighlightTable = ({ highlightsArray, templateId, filename }) => {
     }
   };
 
-  const renderHeader = () => (
-    <div className='flex items-center justify-between p-4 bg-white border-b border-gray-200'>
-      <div className='flex items-center gap-4'>
-        <button
-          onClick={() => navigate(-1)}
-          className='p-2 rounded-md hover:bg-gray-100'
-        >
-          <ArrowLeft className='w-5 h-5 text-gray-600' />
-        </button>
-        <h1 className='text-xl font-semibold text-gray-800'>
-          {templateName}
-        </h1>
-      </div>
-      <div className='flex items-center gap-4'>
-        <div className='relative'>
-          <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' />
-          <input
-            type='text'
-            placeholder='Search...'
-            className='pl-10 pr-4 py-2 w-64 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-          />
+  const renderContent = () => {
+    if (items.length === 0) {
+      return (
+        <div className='flex-1 flex items-center justify-center text-gray-500'>
+          No documents available for this template.
         </div>
-        <button className='flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border rounded-lg hover:bg-gray-50'>
-          <Eye className='w-5 h-5' />
-          Preview
-        </button>
-        <button
-          onClick={handleExportAll}
-          className='px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700'
-          disabled={isLoading}
-        >
-          {isLoading ? "Generating..." : "Generate"}
-        </button>
-        <button className='p-2 rounded-full hover:bg-gray-100'>
-          <HelpCircle className='w-6 h-6 text-gray-500' />
-        </button>
-      </div>
-    </div>
-  );
+      );
+    }
+    return <Carousel items={items} />;
+  };
 
   const renderTable = () => {
-    if (tableData.length === 0) {
+    if (!msDocument || msDocument.length === 0) {
       return (
-        <div className='text-center p-8 text-gray-500'>
-          No documents found for this template.
-        </div>
-      );
-    }
-
-    const firstDocument = tableData[0];
-
-    // Add a robust guard to ensure the document and its highlights exist
-    if (!firstDocument || !Array.isArray(firstDocument.highlights)) {
-      return (
-        <div className='text-center p-8 text-gray-500'>
-          Document is missing highlight data.
-        </div>
-      );
-    }
-
-    const variableNames = firstDocument.highlights.map((h) => h.label);
-
-    return (
-      <div className='flex-1 p-4 overflow-auto'>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          {/* Column 1: Variable Names */}
-          <div className='bg-white p-4 rounded-lg border'>
-            <div className='flex items-center justify-between mb-4'>
-              <h2 className='font-semibold text-gray-700'>Variable Name</h2>
-              <button className='flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800'>
-                <Plus className='w-4 h-4' />
-                Add
+        <div className="p-4 bg-white rounded-lg shadow-md">
+          <div className="flex justify-between items-center pb-4 border-b">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Variable Name
+            </h2>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleAddRow}
+                className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+              >
+                <Plus size={18} className="mr-2" /> Add
               </button>
+              <div className="flex items-center">
+                <span className="px-4 py-2 border-b-2 border-indigo-600 font-semibold text-indigo-600">
+                  Document 1
+                </span>
+              </div>
+              <Maximize2 className="text-gray-500 cursor-pointer" />
             </div>
-            <div className='space-y-2'>
-              {variableNames.map((name, index) => (
-                <div
-                  key={index}
-                  className='px-4 py-3 bg-gray-50 border rounded-md text-gray-800'
-                >
-                  {name}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-4">
+            {(highlightsArray || []).map((highlight, index) => (
+              <React.Fragment key={index}>
+                <div className="p-3 border rounded-md bg-gray-50 text-gray-800 flex items-center">
+                  {highlight.label}
                 </div>
-              ))}
-            </div>
+                <div>
+                  <input
+                    type="text"
+                    value={highlight.text || ""}
+                    onChange={(e) =>
+                      handleInputChange(e.target.value, 0, index)
+                    }
+                    onBlur={() => handleBlur(0, index)}
+                    className="w-full p-3 border rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              </React.Fragment>
+            ))}
           </div>
+        </div>
+      );
+    }
+  
+    return (
+      <div className="p-4 bg-white rounded-lg shadow-md">
+        <div className="flex justify-between items-center pb-4 border-b">
+          <h2 className="text-xl font-semibold text-gray-800">Variable Name</h2>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={handleAddRow}
+              className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            >
+              <Plus size={18} className="mr-2" /> Add
+            </button>
+            <div className="flex items-center">
+              <span className="px-4 py-2 border-b-2 border-indigo-600 font-semibold text-indigo-600">
+                {tableData[0]?.fileName || "Document 1"}
+              </span>
+            </div>
+            <Maximize2
+              className="text-gray-500 cursor-pointer"
+              onClick={() => handleViewDocument(tableData[0])}
+            />
+          </div>
+        </div>
 
-          {/* Column 2: Document 1 */}
-          <div className='bg-white p-4 rounded-lg border'>
-            <div className='flex items-center justify-between mb-4'>
-              <h2 className='font-semibold text-gray-700'>
-                {firstDocument.fileName}
-              </h2>
-              <button className='p-2 rounded-md hover:bg-gray-100'>
-                <Maximize2 className='w-5 h-5 text-gray-500' />
-              </button>
-            </div>
-            <div className='space-y-2'>
-              {firstDocument.highlights.map((highlight, index) => (
+        <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-4">
+          {tableData[0]?.highlights.map((highlight, index) => {
+            // If highlight has a nested highlights array, render those
+            if (Array.isArray(highlight.highlights) && highlight.highlights.length > 0) {
+              return highlight.highlights.map((nested, nidx) => (
+                <React.Fragment key={`${index}-${nidx}`}>
+                  {nested.labels && nested.labels.length > 0
+                    ? nested.labels.map((lbl, lidx) => (
+                        <div key={lidx} className="flex items-center mb-2">
+                          <div className="w-1/3 p-3 border rounded-md bg-gray-50 text-gray-800">
+                            {lbl.label}
+                          </div>
+                          <input
+                            type="text"
+                            value={lbl.value || ""}
+                            onChange={e => {
+                              // Update the value in the nested label
+                              const updatedTableData = [...tableData];
+                              updatedTableData[0].highlights[index].highlights[nidx].labels[lidx].value = e.target.value;
+                              setTableData(updatedTableData);
+                            }}
+                            className="w-2/3 p-3 border rounded-md focus:ring-1 focus:ring-indigo-500 outline-none ml-2"
+                          />
+                        </div>
+                      ))
+                    : <div className="text-gray-500">No labels</div>}
+                </React.Fragment>
+              ));
+            }
+            // Otherwise, render as before (flat highlight)
+            return (
+              <div key={index} className="flex items-center mb-2">
+                <div className="w-1/3 p-3 border rounded-md bg-gray-50 text-gray-800">
+                  {highlight.label}
+                </div>
                 <input
-                  key={highlight._id}
-                  type='text'
-                  value={highlight.text}
-                  onChange={(e) => handleInputChange(e.target.value, 0, index)}
-                  className='w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  type="text"
+                  value={highlight.text || ""}
+                  onChange={e => handleInputChange(e.target.value, 0, index)}
+                  onBlur={() => handleBlur(0, index)}
+                  className="w-2/3 p-3 border rounded-md focus:ring-1 focus:ring-indigo-500 outline-none ml-2"
                 />
-              ))}
-            </div>
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
   };
 
   return (
-    <div className='flex flex-col h-screen bg-gray-50'>
-      {renderHeader()}
-      {renderTable()}
+    <div className='flex h-screen bg-gray-50'>
+      <div className='flex-1 flex flex-col p-6 overflow-y-auto'>
+        {renderTable()}
+      </div>
+      <div className='w-80 p-4'>
+        <Instructions
+          handleExportAll={handleExportAll}
+          viewAllDocument={viewAllDocument}
+          displayListofDocuments={displayListofDocuments}
+        />
+      </div>
+
+      {isModalOpen && (
+        <DocumentHighlightsModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          highlight={highlight}
+          currentDoc={currentDoc}
+          onSave={saveTableOrImage}
+        />
+      )}
     </div>
   );
 };

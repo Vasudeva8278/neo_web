@@ -41,7 +41,7 @@ const Card = ({ project, thumbnail, onEdit }) => {
   }, []);
 
   return (
-    <div className="border border-gray-200 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col justify-between w-full sm:w-48 md:w-64 relative bg-white" style={{ height: '320px' }}>
+    <div className="border border-gray-200 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col justify-between w-full sm:w-44 md:w-56 relative bg-white" style={{ height: '320px' }}>
       {/* Menu Button */}
       <div className="flex justify-end relative">
         <div ref={menuRef} className="relative z-20">
@@ -109,7 +109,7 @@ const Card = ({ project, thumbnail, onEdit }) => {
 
 const ProjectCards = ({ projects, onEdit }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 p-4">
       {projects?.map((project) => (
         <Card
           project={project}
@@ -119,7 +119,7 @@ const ProjectCards = ({ projects, onEdit }) => {
           thumbnail={project.thumbnail}
           onEdit={onEdit}
         />
-      ))})
+      ))}
     </div>
   );
 };

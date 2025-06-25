@@ -8,7 +8,8 @@ import DynamicTable from '../DynamicTable';
 
 const EditModal = ({ isOpen, onClose, onSave, initialText,label,editHighlight }) => {
   const [newText, setNewText] = useState(initialText);
-  const [newLabel, setNewLabel] = useState(label);
+  const [newLabels, setNewLabels] = useState(Array.isArray(label) ? label : label ? [label] : []);
+  const [labelInput, setLabelInput] = useState("");
   const [newImage, setNewImage] = useState(null);
   const [selectedImage, setSelectedImage] = useState('')
   const [highlightType, setHighlightType] = useState('text');
@@ -58,7 +59,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialText,label,editHighlight })
   // Ensure the newText state updates when initialText changes
   useEffect(() => {
     setNewText(initialText);
-    setNewLabel(label);
+    setNewLabels(Array.isArray(label) ? label : label ? [label] : []);
     setHighlightType(editHighlight.type);
      
     /* if(editHighlight.type==='table'){
@@ -72,10 +73,10 @@ const EditModal = ({ isOpen, onClose, onSave, initialText,label,editHighlight })
     setNewText(doc.body.innerHTML);
  
     } */
-    }, [initialText,label,editHighlight]);
+    }, [initialText, label, editHighlight]);
 
   const handleSave = () => {
-    onSave(newText,newLabel);
+    onSave(newText, newLabels);
     onClose();
   };
   
@@ -119,7 +120,7 @@ const EditModal = ({ isOpen, onClose, onSave, initialText,label,editHighlight })
     
     console.log("in handle Save Image", initialText)
     if(!newImage) { 
-      onSave(initialText,newLabel);
+      onSave(initialText,newLabels);
     }else{
    const newImageName= await uploadNewImage();
    console.log(newImageName);
@@ -134,7 +135,13 @@ const EditModal = ({ isOpen, onClose, onSave, initialText,label,editHighlight })
     };
     console.log(img[0]);
     const edittedImage =img[0];
-    onSave(edittedImage?.outerHTML,newLabel);
+    const highlightsPayload = newLabels.map(h => ({
+      label: h,
+      text: edittedImage?.outerHTML,
+      type: editHighlight.type || "text",
+    }));
+    console.log("Payload to backend:", { templateId: editHighlight.templateId, highlights: highlightsPayload });
+    onSave(edittedImage?.outerHTML, newLabels);
   }
     setNewImage(null);
     onClose();
@@ -152,7 +159,13 @@ const EditModal = ({ isOpen, onClose, onSave, initialText,label,editHighlight })
     };
     console.log(table[0]);
     const edittedTable =table[0];
-    onSave(edittedTable?.outerHTML,newLabel);
+    const highlightsPayload = newLabels.map(h => ({
+      label: h,
+      text: edittedTable?.outerHTML,
+      type: editHighlight.type || "text",
+    }));
+    console.log("Payload to backend:", { templateId: editHighlight.templateId, highlights: highlightsPayload });
+    onSave(edittedTable?.outerHTML, newLabels);
     onClose();
   }
 
@@ -163,14 +176,48 @@ const EditModal = ({ isOpen, onClose, onSave, initialText,label,editHighlight })
       <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 max-w-[90%] min-w-[700px] max-h-[80%)] overflow-auto">
         <h2 className="text-lg font-semibold text-gray-900">Edit Highlighted Texts</h2>
         <div className="mt-4">
-          <label htmlFor="originalText" className="block text-sm font-medium text-gray-700">Label:</label>
-          <input
-            id="originalText"
-            type="text"
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 text-gray-500 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
+          <label className="block text-sm font-medium text-gray-700">Labels:</label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {newLabels.map((lbl, idx) => (
+              <span key={idx} className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded flex items-center">
+                {lbl}
+                <button
+                  type="button"
+                  className="ml-1 text-red-500 hover:text-red-700"
+                  onClick={() => setNewLabels(newLabels.filter((_, i) => i !== idx))}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          <div className="flex">
+            <input
+              type="text"
+              value={labelInput}
+              onChange={e => setLabelInput(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none"
+              placeholder="Add label"
+              onKeyDown={e => {
+                if (e.key === "Enter" && labelInput.trim()) {
+                  setNewLabels([...newLabels, labelInput.trim()]);
+                  setLabelInput("");
+                }
+              }}
+            />
+            <button
+              type="button"
+              className="px-3 py-2 bg-indigo-600 text-white rounded-r-md"
+              onClick={() => {
+                if (labelInput.trim()) {
+                  setNewLabels([...newLabels, labelInput.trim()]);
+                  setLabelInput("");
+                }
+              }}
+            >
+              Add
+            </button>
+          </div>
         </div>
         {editHighlight.type==='text' && 
           <>

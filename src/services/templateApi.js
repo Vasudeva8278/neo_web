@@ -43,58 +43,39 @@ api.interceptors.response.use(
 );
 
 // Template API functions
-export const createTemplate = async (projectId, formData) => {
+export const createTemplate = async (formData) => {
   try {
-    console.log('Creating template with projectId:', projectId);
     // Log form data entries for debugging
     for (let pair of formData.entries()) {
-      console.log(pair[0] + ': ' + (pair[0] === 'file' ? pair[1].name : pair[1]));
+      console.log(
+        pair[0] + ": " + (pair[0] === "file" ? pair[1].name : pair[1])
+      );
     }
-    
-    const response = await fetch('http://localhost:7000/api/templates/converted', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: formData
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Server response error:', response.status, errorText);
-      throw new Error(`Server error: ${response.status} ${errorText}`);
-    }
-    
-    return response.json();
+
+    const response = await api.post("/templates/converted", formData);
+    return response.data;
   } catch (error) {
-    console.error('Error in createTemplate:', error);
+    console.error("Error in createTemplate:", error);
     throw error;
   }
 };
 // Direct template upload function
-export const uploadTemplate = async (templateId, file) => {
+export const uploadTemplate = async (projectId, file) => {
   const formData = new FormData();
-  formData.append('file', file);
-  formData.append('projectId', templateId); // Adding projectId as requested
-  
-  const response = await fetch('http://localhost:7000/api/templates/upload', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`
-    },
-    body: formData
-  });
-  
-  return response.json();
+  formData.append("file", file);
+  formData.append("projectId", projectId); // Adding projectId as requested
+
+  const response = await api.post("/templates/upload", formData);
+  return response.data;
 };
 
 export const updateTemplate = async (projectId, templateId, formData) => {
-  const response = await api.put(`/templates/${projectId}/${templateId}`, formData);
+  const response = await api.put(`/project/${projectId}/templates/${templateId}`, formData);
   return response.data;
 };
 
 export const deleteTemplate = async (projectId, templateId) => {
-  await api.delete(`/templates/${projectId}/${templateId}`);
+  await api.delete(`/project/${projectId}/templates/${templateId}`);
 };
 
 export const getAllTemplates = async () => {
@@ -113,7 +94,27 @@ export const getHomePageTemplates = async (projectId) => {
 };
 
 export const getTemplatesByProjectId = async (projectId) => {
-  const response = await api.get(`/templates/${projectId}`);
+  const response = await api.get(`/templates/by-project/${projectId}`);
+  return response.data;
+};
+
+export const getTemplatesWithNamesByProjectId = async (projectId) => {
+  const response = await api.get(`/projectDocs/documents/documents-with-template-names/${projectId}`);
+  return response.data;
+};
+
+export const getHighlightsByTemplateId = async (templateId) => {
+  const response = await api.get(`/highlights?templateId=${templateId}`);
+  return response.data;
+};
+
+export const getTemplateHighlights = async (templateId) => {
+  const response = await api.get(`/highlights/template/${templateId}`);
+  return response.data;
+};
+
+export const saveHighlights = async (payload) => {
+  const response = await api.post('/highlights', payload);
   return response.data;
 };
 
@@ -137,9 +138,9 @@ export const getTemplates = async () => {
   return response.data;
 };
 
-export const getTemplatesById = async (projectId, templateId) => {
+export const getTemplatesById = async (templateId) => {
   try {
-    const response = await api.get(`/templates/${projectId}/${templateId}`);
+    const response = await api.get(`/templates/${templateId}`);
     if (response.status !== 200) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }

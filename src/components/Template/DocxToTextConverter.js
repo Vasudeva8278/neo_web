@@ -16,13 +16,15 @@ import { getTemplatesById } from "../../services/templateApi";
 import {
   deleteHighlight,
   getImgLink,
-  saveOrUpdateHighlights,
-  saveTemplateContent,
+  postHighlights,
+  getHighlightsByTemplateId,
   uploadImg,
 } from "../../services/highlightsApi";
 import StyleComponents from "../StyleComponents";
 import LabelsComponent from "./LabelsComponent";
 import { getExistingLabelsInProject } from "../../services/projectApi";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function DocxToTextConverter() {
   const navigate = useNavigate();
@@ -65,17 +67,20 @@ function DocxToTextConverter() {
   const [alertText, setAlertText] = useState("");
   const [isResetAll, setIsResetAll] = useState(false);
   const location = useLocation(); // Gives you access to the current URL including the query string
+  const { templateIds, currentIndex } = location.state || {};
   const queryParams = new URLSearchParams(location.search);
-  const projectId = queryParams.get("projectId");
+  const projectId =
+    queryParams.get("projectId") || (location.state && location.state.projectId);
   const [editTemplate, setEditTemplate] = useState(true);
   const [rightSectionVisible, setRightSectionVisible] = useState(false);
   const [isContentTouched, setIsContentTouched] = useState(false);
   const [existingLabels, setExistingLabels] = useState([]); // Store fetched labels
+  const [isSaving, setIsSaving] = useState(false);
 
   const fetchLabels = async (projectId) => {
     console.log(projectId);
     try {
-      const result = await getExistingLabelsInProject(projectId);
+      const result = await getHighlightsByTemplateId(id);
 
       const groupedLabels = result.reduce((acc, item) => {
         acc[item.highlightType] = item.labels;
@@ -95,7 +100,7 @@ function DocxToTextConverter() {
     const fetchDocument = async () => {
       if (id) {
         try {
-          const response = await getTemplatesById(projectId, id);
+          const response = await getTemplatesById(id);
           const result = response;
           setTemplateId(result._id);
           setConversionStatus(result.content);
@@ -111,6 +116,28 @@ function DocxToTextConverter() {
     fetchDocument();
     fetchLabels(projectId);
   }, [id]);
+
+  const handleNext = () => {
+    if (templateIds && currentIndex < templateIds.length - 1) {
+      const nextIndex = currentIndex + 1;
+      const nextTemplateId = templateIds[nextIndex];
+      navigate(`/template/${nextTemplateId}`, {
+        state: { templateIds, currentIndex: nextIndex, projectId },
+        replace: true,
+      });
+    }
+  };
+
+  const handlePrevious = () => {
+    if (templateIds && currentIndex > 0) {
+      const prevIndex = currentIndex - 1;
+      const prevTemplateId = templateIds[prevIndex];
+      navigate(`/template/${prevTemplateId}`, {
+        state: { templateIds, currentIndex: prevIndex, projectId },
+        replace: true,
+      });
+    }
+  };
 
   const handleContentChange = () => {
     setIsContentTouched(true);
@@ -190,6 +217,7 @@ function DocxToTextConverter() {
         label: "",
         type: "image",
         multi: false,
+        content: contentRef.current.innerHTML,
       });
       isImageSelectedRef.current = true;
       console.log(highlightId);
@@ -222,6 +250,7 @@ function DocxToTextConverter() {
         type: "",
         name: "",
         multi: false,
+        content: contentRef.current.innerHTML,
       });
       const selection = window.getSelection();
       console.log(selection);
@@ -257,6 +286,7 @@ function DocxToTextConverter() {
         name: highlightId,
         type: "text",
         multi: isMultiple,
+        content: contentRef.current.innerHTML,
       });
       isTextSelectedRef.current = true;
       selection.removeAllRanges();
@@ -309,6 +339,7 @@ function DocxToTextConverter() {
       label: "",
       type: "table",
       multi: false,
+      content: contentRef.current.innerHTML,
     });
     isTableSelectedRef.current = true;
     console.log(highlightId);
@@ -567,7 +598,8 @@ function DocxToTextConverter() {
     );
     console.log(newText);
     newHighlight.text = newText?.toString();
-    setHighlights((prevHighlights) => [...prevHighlights, newHighlight]);
+    const newHighlights = [...highlights, newHighlight];
+    setHighlights(newHighlights);
     const div = contentRef.current.querySelectorAll(
       `[data-highlight-id="${newHighlight.id}"]`
     );
@@ -575,10 +607,11 @@ function DocxToTextConverter() {
       div[0].innerHTML = newHighlight.text;
     }
 
-    await saveHighlights(
-      [...highlights, newHighlight],
-      contentRef.current.innerHTML
-    );
+    await postHighlights({
+      templateId: templateId,
+      highlights: newHighlights,
+      content: contentRef.current.innerHTML,
+    });
     resetTabs();
   };
 
@@ -592,9 +625,24 @@ function DocxToTextConverter() {
     isTextSelectedRef.current = false;
   };
 
-  const saveLabel = () => {
-    setHighlights((prevHighlights) => [...prevHighlights, newHighlight]);
-    saveHighlights([...highlights, newHighlight], contentRef.current.innerHTML);
+  const saveLabel = async () => {
+    const { id, ...highlightWithoutId } = newHighlight;
+    const newHighlights = [...highlights, highlightWithoutId];
+    setHighlights(newHighlights);
+    setIsSaving(true);
+    try {
+      await postHighlights({
+        templateId: templateId,
+        highlights: newHighlights,
+        content: contentRef.current.innerHTML,
+      });
+      toast.success("Saved successfully!");
+      await fetchDocument();
+    } catch (e) {
+      toast.error("Failed to save. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
     resetTabs();
   };
 
@@ -677,57 +725,15 @@ function DocxToTextConverter() {
     }
   };
 
-  const handleSaveHighlight = (newText, label) => {
-    const updatedHighlights = highlights.map((highlight) =>
-      highlight.id === editHighlightId
-        ? { ...highlight, text: newText, label: label }
-        : highlight
-    );
-
-    setHighlights(updatedHighlights);
-    if (editHighlight.type === "text") {
-      const spans = contentRef.current.querySelectorAll(
-        `[data-highlight-id="${editHighlightId}"]`
-      );
-      spans.forEach((span) => {
-        if (span && span.parentNode) {
-          span.textContent = newText;
-        }
-      });
-    }
-
-    if (editHighlight.type === "table") {
-      const sections = contentRef.current.querySelectorAll(
-        `[data-highlight-id="${editHighlightId}"]`
-      );
-
-      if (sections[0] && sections[0].parentNode) {
-        //console.log(newText)
-        sections[0].innerHTML = newText;
-        //sections[0].append(newText);
-      }
-    }
-    if (editHighlight.type === "image") {
-      //console.log(newText);
-
-      const div = contentRef.current.querySelectorAll(
-        `[data-highlight-id="${editHighlightId}"]`
-      );
-
-      if (div[0] && div[0].parentNode) {
-        // console.log(newText)
-        div[0].innerHTML = newText;
-        //sections[0].append(newText);
-      }
-    }
-
-    // console.log(updatedHighlights);
-    saveHighlights(updatedHighlights, contentRef.current.innerHTML);
-    setEditHighlight("");
-    setEditInitialText("");
-    setAddLabel(false);
-    setIsMultiple(false);
-    setIsModalOpen(false);
+  const handleSaveHighlight = async (highlightObj) => {
+    // Compose payload for backend
+    const payload = {
+      templateId, // your current templateId
+      highlights: [highlightObj],
+      content: contentRef.current.innerHTML, // or wherever your current HTML is
+    };
+    await postHighlights(payload);
+    // Optionally, refresh highlights list here
   };
 
   const handleRemoveHighlight = (id) => {
@@ -869,74 +875,47 @@ function DocxToTextConverter() {
     });
 
     setHighlights([]);
-    saveHighlights([], contentRef.current.innerHTML);
+    postHighlights({
+      templateId: templateId,
+      highlights: [],
+      content: contentRef.current.innerHTML,
+    });
   };
 
   const handleSaveDocumentName = () => {
     setIsEditingFileName(false);
-    saveHighlights(highlights, contentRef.current.innerHTML);
-  };
-
-  const saveHighlights = async (updatedHighlights, content) => {
-    try {
-      setIsLoading(true);
-      const updatedObj = {
-        highlights: updatedHighlights,
-        content,
-        fileName,
-      };
-      const response = await saveOrUpdateHighlights(templateId, updatedObj);
-
-      if (response) {
-        setIsLoading(false);
-        setConversionStatus(content);
-        setNewHighlight({
-          id: "",
-          text: "",
-          label: "",
-          name: "",
-          type: "",
-          multi: false,
-        });
-        setSearchText("");
-      }
-      fetchLabels(projectId);
-    } catch (error) {
-      console.error("Failed to save highlights", error);
-    }
+    postHighlights({
+      templateId: templateId,
+      highlights: highlights,
+      content: contentRef.current.innerHTML,
+    });
   };
 
   const reloadContent = async () => {
-    const response = await getTemplatesById(projectId, id);
+    const response = await getTemplatesById(id);
     contentRef.current.innerHTML = response.content;
     setIsContentTouched(false);
   };
 
   const handleSaveTemplateContent = async () => {
     try {
-      const content = contentRef.current.innerHTML;
-      setIsLoading(true);
-      const updatedObj = {
-        content,
-      };
-      const response = await saveTemplateContent(templateId, updatedObj);
+      if (templateId) {
+        const payload = {
+          templateId: templateId,
+          highlights: highlights,
+        };
 
-      if (response) {
-        setIsLoading(false);
-        setConversionStatus(content);
-        setNewHighlight({
-          id: "",
-          text: "",
-          label: "",
-          name: "",
-          type: "",
-          multi: false,
-        });
-        setSearchText("");
+        const response = await postHighlights(payload);
+        console.log(response);
+
+        if (response) {
+          setIsAlertOpen(true);
+          setAlertText("Template saved successfully");
+          setIsContentTouched(false);
+        }
       }
-      setIsContentTouched(false);
     } catch (error) {
-      console.error("Failed to save highlights", error);
+      console.error("Failed to save document:", error);
     }
   };
 
@@ -995,8 +974,45 @@ function DocxToTextConverter() {
   };
   const highlightedText = highlightText(conversionStatus, searchText);
 
+  const handleLabelChange = (e) => {
+    const selected = e.target.value;
+    setNewHighlight(prev => ({
+      ...prev,
+      label: selected,
+      id: prev.id || generateHighlightId(),
+    }));
+  };
+
+  const handleValueChange = (e) => {
+    setNewHighlight(prev => ({
+      ...prev,
+      text: e.target.value,
+    }));
+  };
+
   return (
     <div>
+      {templateIds && (
+        <div className="flex justify-between items-center p-4 bg-white rounded-t-lg border-b">
+          <button
+            onClick={handlePrevious}
+            disabled={currentIndex === 0}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
+          >
+            &larr; Previous
+          </button>
+          <span>
+            {currentIndex + 1} / {templateIds.length}
+          </span>
+          <button
+            onClick={handleNext}
+            disabled={currentIndex === templateIds.length - 1}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
+          >
+            Next &rarr;
+          </button>
+        </div>
+      )}
       <div className='w-full p-2'>
         <div>
           <div className='flex justify-end'>
@@ -1133,30 +1149,15 @@ function DocxToTextConverter() {
                       {addLabel && (
                         <>
                           <div className='flex space-x-2 px-2'>
-                            {/*    <div className='flex border rounded-md px-2 py-2'>
-                              <input
-                                type='text'
-                                placeholder='Label'
-                                name='label'
-                                className='w-full border border-gray-300 p-2 rounded mr-2'
-                                value={newHighlight.label}
-                                onChange={handleInputChange}
-                              />
-                              <input
-                                type='text'
-                                placeholder='Value'
-                                name='text'
-                                className='w-full border border-gray-300 p-2 rounded'
-                                value={newHighlight.text}
-                                onChange={handleInputChange}
-                                readOnly
-                              />
-                            </div> */}
                             <LabelsComponent
                               newHighlight={newHighlight}
+                              setNewHighlight={setNewHighlight}
                               handleInputChange={handleInputChange}
                               existingLabels={existingLabels?.text}
                               labelType='text'
+                              handleLabelChange={handleLabelChange}
+                              onSave={handleSaveHighlight}
+                              content={contentRef.current ? contentRef.current.innerHTML : ""}
                             />
                           </div>
 
@@ -1218,28 +1219,15 @@ function DocxToTextConverter() {
                         <>
                           <div className='flex space-x-2 px-2'>
                             <div className='flex py-2 px-2 rounded-md border w-full'>
-                              {/* <input
-                                type='text'
-                                placeholder='Label'
-                                name='label'
-                                className='w-full border border-gray-300 p-2 rounded'
-                                value={newHighlight.label}
-                                onChange={handleInputChange}
-                              />
-                              <input
-                                type='text'
-                                placeholder='Value'
-                                hidden
-                                name='text'
-                                className='w-full border border-gray-300 p-2 rounded'
-                                value={newHighlight.text}
-                                onChange={handleInputChange}
-                              />*/}
                               <LabelsComponent
                                 newHighlight={newHighlight}
+                                setNewHighlight={setNewHighlight}
                                 handleInputChange={handleInputChange}
                                 existingLabels={existingLabels?.table}
                                 labelType='table'
+                                handleLabelChange={handleLabelChange}
+                                onSave={handleSaveHighlight}
+                                content={contentRef.current ? contentRef.current.innerHTML : ""}
                               />
                             </div>
                           </div>
@@ -1279,28 +1267,15 @@ function DocxToTextConverter() {
                         <>
                           <div className='flex space-x-2 px-2'>
                             <div className='flex border rounded-md px-2 py-2 w-full'>
-                              {/*    <input
-                                type='text'
-                                placeholder='Label'
-                                name='label'
-                                className='w-full border border-gray-300 p-2 rounded'
-                                value={newHighlight.label}
-                                onChange={handleInputChange}
-                              />
-                              <input
-                                type='text'
-                                placeholder='Value'
-                                hidden
-                                name='text'
-                                className='w-full border border-gray-300 p-2 rounded'
-                                value={newHighlight.text}
-                                onChange={handleInputChange}
-                              />*/}
                               <LabelsComponent
                                 newHighlight={newHighlight}
+                                setNewHighlight={setNewHighlight}
                                 handleInputChange={handleInputChange}
                                 existingLabels={existingLabels?.image}
                                 labelType='image'
+                                handleLabelChange={handleLabelChange}
+                                onSave={handleSaveHighlight}
+                                content={contentRef.current ? contentRef.current.innerHTML : ""}
                               />
                             </div>
                           </div>
@@ -1506,6 +1481,12 @@ function DocxToTextConverter() {
           </div>
         )}
       </NeoModal>
+      {isSaving && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+          <div className="text-white text-lg">Saving...</div>
+        </div>
+      )}
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }

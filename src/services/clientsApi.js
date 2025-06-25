@@ -31,3 +31,13 @@ export const getClientDetails = async (id) => {
     throw error;
   }
 };
+
+export const createClient = async (clientData) => {
+  try {
+    const response = await api.post("/clients", clientData);
+    return response.data;
+  } catch (error) {
+    console.error("Error while creating client", error);
+    throw error;
+  }
+};

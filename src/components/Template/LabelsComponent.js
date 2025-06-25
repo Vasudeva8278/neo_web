@@ -1,50 +1,78 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { getExistingLabelsInProject } from "../../services/projectApi";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+function generateHighlightId() {
+  return 'highlight-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+}
 
 const LabelsComponent = ({
   newHighlight,
-  handleInputChange,
-  existingLabels,
+  setNewHighlight,
+  onSave, // callback to parent to save
+  existingLabels = [],
   labelType,
+  content, // pass the current content (HTML) from parent
 }) => {
-  const [activeTab, setActiveTab] = useState("existing"); // Default to 'existing'
-  //  const [existingLabels, setExistingLabels] = useState([]); // Store fetched labels
-  const [selectedLabel, setSelectedLabel] = useState(""); // Track selected label value
-  /*
-  const fetchLabels = async (projectId) => {
-    console.log(projectId);
-    try {
-      const result = await getExistingLabelsInProject(projectId);
-      setExistingLabels(result || []);
-      console.log("Existing Labels: ", result);
-    } catch (error) {
-      console.error("Error updating templates: ", error);
-    }
+  const [activeTab, setActiveTab] = useState("existing");
+  const [selectedLabel, setSelectedLabel] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // For new label
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewHighlight((prev) => ({
+      ...prev,
+      [name]: value,
+      id: prev.id || generateHighlightId(),
+      content, // always attach current content
+    }));
   };
 
-  useEffect(() => {
-    if (projectId) {
-      fetchLabels(projectId);
-    }
-  }, []);*/
-
+  // For existing label
   const handleLabelChange = (e) => {
     const selected = e.target.value;
     setSelectedLabel(selected);
+    setNewHighlight((prev) => ({
+      ...prev,
+      label: selected,
+      id: prev.id || generateHighlightId(),
+      content,
+    }));
+  };
 
-    // Update newHighlight with the selected label and value
-    const selectedLabelObj = existingLabels.find((label) => label === selected);
-    console.log(selectedLabelObj);
-    if (selectedLabelObj) {
-      newHighlight.label = selected;
-      handleInputChange({
-        target: { name: "label", value: newHighlight.label },
-      });
+  const handleValueChange = (e) => {
+    setNewHighlight((prev) => ({
+      ...prev,
+      text: e.target.value,
+      id: prev.id || generateHighlightId(),
+      content,
+    }));
+  };
+
+  // Save handler
+  const handleSave = async () => {
+    if (newHighlight.label && newHighlight.text && newHighlight.id) {
+      setIsSaving(true);
+      try {
+        await onSave(newHighlight);
+        toast.success("Saved successfully!");
+      } catch (e) {
+        toast.error("Failed to save. Please try again.");
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
   return (
     <div className='w-full mx-auto bg-white rounded-lg shadow-md'>
+      {isSaving && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+          <div className="text-white text-lg">Saving...</div>
+        </div>
+      )}
       {/* Tab Buttons */}
       <div className='flex border-b'>
         <button
@@ -73,33 +101,30 @@ const LabelsComponent = ({
       <div className='p-6'>
         {activeTab === "existing" && (
           <div>
-            {/* Dropdown for Existing Labels */}
             <div className='mb-4'>
               <select
                 value={selectedLabel}
                 onChange={handleLabelChange}
                 className='w-full border border-gray-300 p-2 rounded'
-                disabled={!newHighlight.text}
               >
                 <option value='' disabled>
                   Select a label
                 </option>
-                {existingLabels.map((label, index) => (
-                  <option key={index} value={label}>
-                    {label}
-                  </option>
-                ))}
+                {Array.isArray(existingLabels) &&
+                  existingLabels.map((label, index) => (
+                    <option key={index} value={label}>
+                      {label}
+                    </option>
+                  ))}
               </select>
             </div>
-
-            {/* Display Selected Label and Value */}
             <div className='flex border rounded-md px-2 py-2'>
               <input
                 type='text'
                 placeholder='Label'
                 name='label'
                 className='w-full border border-gray-300 p-2 rounded mr-2'
-                value={newHighlight.label}
+                value={newHighlight.label || ""}
                 readOnly
               />
               <input
@@ -107,8 +132,8 @@ const LabelsComponent = ({
                 placeholder='Value'
                 name='text'
                 className='w-full border border-gray-300 p-2 rounded'
-                value={newHighlight.text}
-                readOnly
+                value={newHighlight.text || ""}
+                onChange={handleValueChange}
                 hidden={labelType === "text" ? false : true}
               />
             </div>
@@ -121,7 +146,7 @@ const LabelsComponent = ({
               placeholder='Label'
               name='label'
               className='w-full border border-gray-300 p-2 rounded mr-2'
-              value={newHighlight.label}
+              value={newHighlight.label || ""}
               onChange={handleInputChange}
             />
             <input
@@ -129,13 +154,23 @@ const LabelsComponent = ({
               placeholder='Value'
               name='text'
               className='w-full border border-gray-300 p-2 rounded'
-              value={newHighlight.text}
+              value={newHighlight.text || ""}
               onChange={handleInputChange}
               hidden={labelType === "text" ? false : true}
             />
           </div>
         )}
+        <div className="flex justify-end mt-4">
+          <button
+            className={`px-4 py-2 rounded ${newHighlight.label && newHighlight.text && newHighlight.id ? "bg-indigo-600 text-white" : "bg-gray-400 text-gray-600 cursor-not-allowed"}`}
+            onClick={handleSave}
+            disabled={!(newHighlight.label && newHighlight.text && newHighlight.id)}
+          >
+            Save
+          </button>
+        </div>
       </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };

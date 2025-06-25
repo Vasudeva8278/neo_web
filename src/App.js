@@ -17,6 +17,7 @@ import Organizations from "./components/Organizations";
 import Home from "./components/Home";
 import PrivateRoute from "./components/PrivateRoute";
 import GoogleAuthCallback from './components/Auth/GoogleAuthCallback';
+import GenerateDocument from "./components/GenerateDocument";
 
 const App = () => {
   return (
@@ -90,6 +91,7 @@ const App = () => {
               }
             />
             <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
+            <Route path="/test/generate-document" element={<GenerateDocument onClose={() => {}} />} />
           </Routes>
         </div>
       </Router>

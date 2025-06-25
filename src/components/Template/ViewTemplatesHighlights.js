@@ -6,7 +6,7 @@ import imgIcon from "../../Assets/imgIcon.jpg";
 import tableIcon from "../../Assets/tableIcon.png";
 import ClientHighlightsModal from "../Client/ClientHighlightsModal";
 import NeoModal from "../NeoModal";
-import { getClientDetails } from "../../services/clientsApi";
+import { getClientDetails, createClient } from "../../services/clientsApi";
 
 const ViewTemplatesHighlights = () => {
   const location = useLocation();
@@ -31,6 +31,7 @@ const ViewTemplatesHighlights = () => {
   const [alertText, setAlertText] = useState("");
   const [preSelected, setPreSelected] = useState(clientTemplateIds || []);
   const [clientDetails, setClientDetails] = useState("");
+  const clientNameFromState = location.state?.clientName;
 
   useEffect(() => {
     const fetchClientDetails = async (clientId) => {
@@ -60,33 +61,44 @@ const ViewTemplatesHighlights = () => {
   };
 
   const handleSubmit = async () => {
+    setError("");
+    setTempError("");
+    let clientIdToUse = clientId;
+    let createdClient = null;
+    if (!client && clientNameFromState) {
+      // Create the client first
+      try {
+        const clientRes = await createClient({ name: clientNameFromState });
+        createdClient = clientRes.data;
+        clientIdToUse = createdClient._id;
+      } catch (err) {
+        setError("Failed to create client: " + (err.message || "Unknown error"));
+        return;
+      }
+    }
     if (!documentName) {
       setError("Please enter name for document");
       return;
     }
     const updatedSelectedTemplates = templatesData
-      .filter((template) => selectedTemplates.includes(template._id)) // Filter only selected templates
+      .filter((template) => selectedTemplates.includes(template._id))
       .map((template) => ({
         ...template,
         docName: documentName,
         highlights: template.highlights.map((highlight) => {
           if (highlights[highlight.label]) {
-            return { ...highlight, text: highlights[highlight.label].text }; // Update text for matching labels
+            return { ...highlight, text: highlights[highlight.label].text };
           }
           return highlight;
         }),
+        clientId: clientIdToUse,
       }));
-
-    console.log("Updated Selected Templates: ", updatedSelectedTemplates);
     if (!updatedSelectedTemplates || updatedSelectedTemplates.length === 0) {
-      setTempError("Please select atleast 1 template");
+      setTempError("Please select at least 1 template");
       return;
     }
     try {
-      const result = await createDocsMultipleTemplates(
-        updatedSelectedTemplates
-      );
-      console.log("Backend Response: ", result);
+      const result = await createDocsMultipleTemplates(updatedSelectedTemplates);
       if (result.success) {
         alert(result.message);
         navigate(`/projects/${projectData._id}`, {
@@ -94,12 +106,7 @@ const ViewTemplatesHighlights = () => {
         });
       }
     } catch (error) {
-      console.error("Error updating templates: ", error);
-      if (error?.response?.status === 400) {
-        alert(error?.response?.data?.message);
-        return;
-      }
-      alert("Failed to update templates. Please try again.");
+      setError("Failed to create documents: " + (error.message || "Unknown error"));
     }
   };
 
