@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from 'react-toastify';
 
 const api = axios.create({
   baseURL: `${process.env.REACT_APP_BASE_URL}/api`,
@@ -58,7 +59,7 @@ export const deleteDocument = async (documentId) => {
 export const updateDocHighlightText = async (documentId, updatedDoc) => {
   try {
     const response = await api.put(
-      `/documents/updatedoc/${documentId}`,
+      `/document/update-content/${documentId}`,
       updatedDoc
     );
     return response.status === 200 ? response.data : null;
@@ -82,7 +83,7 @@ export const getAllDocuments = async () => {
 // Get Document by ID
 export const getDocumentById = async (documentId) => {
   try {
-    const response = await api.get(`/documents/view-document/${documentId}`);
+    const response = await api.get(`/document/${documentId}`);
     return response.data;
   } catch (error) {
     console.error("Error while fetching document by ID", error);
@@ -129,7 +130,7 @@ export const getHomePageDocuments = async (projectId) => {
   }
 };
 
-// Get Documents with Template Names
+// Get 
 export const getDocumentsWithTemplateNames = async () => {
   try {
     const response = await api.get(
@@ -174,13 +175,8 @@ export const downloadDocument = async (documentId, fileName) => {
 export const updateDocumentContent = async (documentId, content) => {
   try {
     const response = await api.put(
-      `/projectDocs/update-content/${documentId}`,
-      { content },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      `/document/update-content/${documentId}`,
+      { content }
     );
     return response.data;
   } catch (error) {
@@ -208,7 +204,8 @@ export const addNewDocument = async (newDoc) => {
     const response = await api.post(`/document/add-document/${pid}`, payload);
     return response.data;
   } catch (error) {
-    console.error("Error while adding new document", error);
+    console.error('Add failed:', error.response ? error.response.data : error);
+    toast.error(error.response?.data?.message || 'Add failed');
     throw error;
   }
 };

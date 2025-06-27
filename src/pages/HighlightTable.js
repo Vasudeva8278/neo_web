@@ -39,7 +39,7 @@ import { getTemplateById, getAllTemplates } from '../services/templateApi';
 import TooltipIcon from "../components/TooltipIcon";
 import FileCarousel from "../components/FileCarousel";
 import Carousel from "../components/FileCarousel";
-import { getHighlightsByTemplateId } from '../services/highlightsApi';
+import { getHighlightsByTemplateId, updateHighlight } from '../services/highlightsApi';
 
 const HighlightTable = ({
   highlightsArray,
@@ -167,14 +167,17 @@ const HighlightTable = ({
       alert("Failed to load templates for preview.");
     }
   };
-  const handleInputChange = (value, rowIndex, cellIndex) => {
-    const updatedTableData = [...tableData];
-    try {
-      updatedTableData[rowIndex].highlights[cellIndex].text = value;
-    } catch (err) {
-      updatedTableData[rowIndex].fileName = value;
-    }
-    setTableData(updatedTableData);
+  const handleInputChange = (value, docIdx, varIdx) => {
+    setMsDocument(prev => {
+      const updated = [...prev];
+      updated[docIdx] = {
+        ...updated[docIdx],
+        highlights: updated[docIdx].highlights.map((h, i) =>
+          i === varIdx ? { ...h, text: value } : h
+        ),
+      };
+      return updated;
+    });
   };
 
   const handleDeleteDocument = async (doc) => {
@@ -271,38 +274,35 @@ const HighlightTable = ({
     setConversionStatus(tableData[rowIndex].content);
   };
 
-  const handleAddRow = async () => {
-    let blueprint = highlightsArray;
-
-    if (!blueprint || blueprint.length === 0) {
-      try {
-        const templateData = await getTemplateById(templateId);
-        blueprint = templateData.highlights;
-      } catch (error) {
-        console.error("Failed to fetch template structure:", error);
-        alert("Could not load template structure to add a new document.");
-        return;
-      }
+  const handleAddRow = () => {
+    let blueprint = highlightsArray || (msDocument[0]?.highlights ?? []);
+    if (!blueprint.length) {
+      alert("No template structure available to add a new document.");
+      return;
     }
-
-    if (blueprint) {
-      const newCells = {
-        id: uuidv4(),
-        templateId,
-        projectId,
-        fileName: "DocName" + msDocument.length,
-        highlights: blueprint.map((cell) => ({
-          id: cell.id,
-          label: cell.label,
-          text: "",
-          type: cell.type,
-        })),
-      };
-      await addNewDocument(newCells);
-      fetchData();
-    } else {
-      console.error("Cannot add a new row: no highlight blueprint available.");
-    }
+    const newDoc = {
+      id: uuidv4(),
+      templateId,
+      fileName: "DocName" + (msDocument.length + 1),
+      highlights: blueprint.map(cell => ({
+        ...cell,
+        text: "", // empty for new row
+      })),
+    };
+    setTableData(prev => [...prev, newDoc]);
+    setMsDocument(prev => [...prev, newDoc]);
+    setItems(prev => [
+      ...prev,
+      {
+        id: newDoc.id,
+        image: null,
+        title: newDoc.fileName,
+        description: (newDoc.highlights || [])
+          .filter(h => h.type === "text")
+          .map(h => h.text)
+          .join(" "),
+      },
+    ]);
   };
   const handleExportAll = async (event) => {
     event.preventDefault();
@@ -459,10 +459,42 @@ const HighlightTable = ({
     );
   };
 
+  const handleHighlightUpdate = async (highlightId, updatedData) => {
+    await updateHighlight(highlightId, updatedData);
+    // Re-fetch template and document data to update the UI
+    fetchData();
+  };
+
   return (
     <div className='flex h-screen bg-gray-50'>
       <div className='flex-1 flex flex-col p-6 overflow-y-auto'>
-        {renderTable()}
+        <table className="w-full">
+          <thead>
+            <tr>
+              <th>Variable Name</th>
+              {(Array.isArray(msDocument) ? msDocument : []).map((doc, colIdx) => (
+                <th key={doc.id || colIdx}>{doc.fileName}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {(highlightsArray || (Array.isArray(msDocument) && msDocument[0]?.highlights) || []).map((variable, rowIdx) => (
+              <tr key={variable.id || rowIdx}>
+                <td>{variable.label}</td>
+                {(Array.isArray(msDocument) ? msDocument : []).map((doc, colIdx) => (
+                  <td key={doc.id || colIdx}>
+                    <input
+                      type="text"
+                      value={doc.highlights[rowIdx]?.text || ""}
+                      onChange={e => handleInputChange(e.target.value, colIdx, rowIdx)}
+                      className="w-full p-2 border rounded"
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
       <div className='w-80 p-4'>
         <Instructions

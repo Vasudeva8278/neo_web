@@ -30,7 +30,11 @@ export const createHighlight = async (formData) => {
   }
 };
 
-// Update Highlight
+
+
+// Save or Update Highlights
+
+
 export const updateHighlight = async (highlightId, payload) => {
   try {
     const response = await api.put(`/highlights/${highlightId}`, payload);
@@ -41,7 +45,7 @@ export const updateHighlight = async (highlightId, payload) => {
   }
 };
 
-// Save or Update Highlights
+
 export const saveOrUpdateHighlights = async (templateId, updatedObj) => {
   try {
     const response = await api.put(

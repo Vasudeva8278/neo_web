@@ -5,8 +5,9 @@ import { AuthContext } from "../../context/AuthContext";
 import api from "../../services/api";
 import backgroundImage from "../../Assets/back.png";
 import { useGoogleLogin } from '@react-oauth/google';
+import login from '../../Assets/login.svg';
 
-const Login = () => {
+const Login = ({ onClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -82,29 +83,26 @@ const Login = () => {
   );
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen w-full overflow-hidden">
-      
-      {/* 🔹 Blurred Background Image */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "blur(8px)",
-        }}
-      />
+    <div
+      className="fixed top-0 left-0 w-full h-screen backdrop-blur-3xl z-[999] flex items-center justify-center"
+      style={{
+        backdropFilter: "blur(2px)",
+         background: "rgba(255, 255, 255, 0.1)"
+      }}
+      onClick={onClose}
+    >
 
-      {/* 🔹 Login Card (Not Blurred) */}
-      <div className="relative z-10 w-full max-w-4xl bg-white shadow-2xl rounded-xl overflow-hidden flex">
+
+      <div className="relative z-10 w-full max-w-4xl shadow-2xl rounded-xl overflow-hidden flex">
+
 
         {/* Left Panel with Illustration */}
-        <div className="w-1/2 hidden lg:flex flex-col justify-between items-center bg-black/50 text-white p-8">
-          <h2 className="text-2xl font-bold">NEO TEMPLATES</h2>
+        <div className="w-1/2 hidden lg:flex  flex-col gap-12 items-center bg-black/50 text-white p-4 bg-gray-200">
+          <h2 className="text-2xl font-bold text-blue-600">NEO TEMPLATES</h2>
           <img
-            src="https://images.unsplash.com/photo-1589421226462-9593206b12a3?q=80&w=2952&auto=format&fit=crop"
+            src={login}
             alt="Login Illustration"
-            className="max-w-sm rounded-md"
+            className="max-w-md rounded-md text-center"
           />
         </div>
 
@@ -182,7 +180,7 @@ const Login = () => {
             <GoogleIcon />
             <span className="font-medium text-gray-700">Sign up with Google</span>
           </button> */}
-          <button 
+          <button
             onClick={() => googleLogin()}
             className="w-full mt-6 flex items-center justify-center py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-300"
           >

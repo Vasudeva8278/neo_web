@@ -74,8 +74,17 @@ export const updateTemplate = async (projectId, templateId, formData) => {
   return response.data;
 };
 
+
+export const updateTemplateContent = async (templateId, content) => {
+  const response = await axios.put(
+    `/templates/update-content/${templateId}`,
+    { content }
+  );
+  return response.data;
+};
+
 export const deleteTemplate = async (projectId, templateId) => {
-  await api.delete(`/project/${projectId}/templates/${templateId}`);
+  await api.delete(`/project/delete-highlight/${templateId}`);
 };
 
 export const getAllTemplates = async () => {
@@ -84,7 +93,7 @@ export const getAllTemplates = async () => {
 };
 
 export const getTemplateById = async (templateId) => {
-  const response = await api.get(`/templates/${templateId}`);
+  const response = await api.get(`/templates/rendered/${templateId}`);
   return response.data;
 };
 

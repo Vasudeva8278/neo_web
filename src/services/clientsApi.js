@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const api = axios.create({
   baseURL: `${process.env.REACT_APP_BASE_URL}/api`,
@@ -34,10 +35,21 @@ export const getClientDetails = async (id) => {
 
 export const createClient = async (clientData) => {
   try {
-    const response = await api.post("/clients", clientData);
+    const response = await api.post("/clients/create-with-docs", clientData);
     return response.data;
   } catch (error) {
     console.error("Error while creating client", error);
+    throw error;
+  }
+};
+
+export const createClientWithDocuments = async (clientData) => {
+  try {
+    const response = await api.post("/clients/create-with-docs", clientData);
+    return response.data;
+  } catch (error) {
+    console.log(clientData);
+    console.error("Error while creating client with documents", error);
     throw error;
   }
 };

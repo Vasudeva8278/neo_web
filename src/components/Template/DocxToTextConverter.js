@@ -76,12 +76,31 @@ function DocxToTextConverter() {
   const [isContentTouched, setIsContentTouched] = useState(false);
   const [existingLabels, setExistingLabels] = useState([]); // Store fetched labels
   const [isSaving, setIsSaving] = useState(false);
+  const [labelResults, setLabelResults] = useState([]);
+
+  const fetchDocument = async () => {
+    if (id) {
+      try {
+        console.log("id:", id);
+        const response = await getTemplatesById(id);
+        const result = response;
+        setTemplateId(result._id);
+        setConversionStatus(result.content);
+        setHighlights(result.highlights);
+        setFileName(result.fileName);
+        setProject(result.projectId); // to get complete project Object to pass in state.
+        console.log("Highlights for table:", highlights);
+      } catch (error) {
+        console.error("Failed to fetch document", error);
+      }
+    }
+  };
 
   const fetchLabels = async (projectId) => {
     console.log(projectId);
     try {
       const result = await getHighlightsByTemplateId(id);
-
+      setLabelResults(result);
       const groupedLabels = result.reduce((acc, item) => {
         acc[item.highlightType] = item.labels;
         return acc;
@@ -90,29 +109,14 @@ function DocxToTextConverter() {
       console.log(groupedLabels);
       setExistingLabels(groupedLabels || {});
 
-      console.log("Existing Labels: ", result);
+
+      console.log("highlights: ", result);
     } catch (error) {
       console.error("Error updating templates: ", error);
     }
   };
 
   useEffect(() => {
-    const fetchDocument = async () => {
-      if (id) {
-        try {
-          const response = await getTemplatesById(id);
-          const result = response;
-          setTemplateId(result._id);
-          setConversionStatus(result.content);
-          setHighlights(result.highlights);
-          setFileName(result.fileName);
-          setProject(result.projectId); // to get complete project Object to pass in state.
-        } catch (error) {
-          console.error("Failed to fetch document", error);
-        }
-      }
-    };
-
     fetchDocument();
     fetchLabels(projectId);
   }, [id]);
@@ -1312,76 +1316,34 @@ function DocxToTextConverter() {
                       )}
                       <div className='space-y-2 max-h-80 overflow-y-auto'>
                         <div className='flex justify-between items-center'>
-                          <table className='min-w-full divide-y'>
-                            <thead className='bg-gray-100'>
+                          <table className='min-w-full divide-y divide-gray-200'>
+                            <thead>
                               <tr>
-                                <th className='px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider'>
-                                  Label
-                                </th>
-                                <th className='px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider'>
-                                  Value
-                                </th>
-                                <th className='px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider'>
-                                  Action
-                                </th>
+                                <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase'>Label</th>
+                                <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase'>Value</th>
+                                <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase'>Type</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {highlights.map((highlight, index) => (
-                                <tr
-                                  key={highlight.id}
-                                  className={
-                                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                                  }
-                                >
-                                  <td className='px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900'>
-                                    <a
-                                      href={`#${highlight.id}`}
-                                      className='text-gray-600 hover:text-blue-800'
-                                    >
-                                      {highlight.label}
-                                    </a>
-                                  </td>
-                                  <td className='px-4 py-2 whitespace-nowrap text-sm text-gray-500'>
-                                    <a
-                                      href={`#${highlight.id}`}
-                                      className='text-gray-600 hover:text-blue-800'
-                                    >
-                                      {highlight.type === "text" ? (
-                                        highlight.text
-                                      ) : highlight.type === "image" ? (
-                                        <img src={image} alt='/' />
-                                      ) : highlight.type === "table" ? (
-                                        <img src={table} alt='/' />
-                                      ) : (
-                                        ""
-                                      )}
-                                    </a>
-                                  </td>
-                                  <td className='px-4 py-2 whitespace-nowrap text-right text-sm font-medium'>
-                                    <div className='flex items-center space-x-2'>
-                                      <button
-                                        onClick={() =>
-                                          handleEditHighlight(highlight.id)
-                                        }
-                                        className='p-1 rounded hover:bg-blue-100'
-                                        title='Edit'
-                                      >
-                                        <PencilIcon className='h-4 w-4 text-blue-500' />
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          handleRemoveHighlight(highlight.id)
-                                        }
-                                        className='p-1 rounded hover:bg-red-100 ml-2'
-                                        title='Remove'
-                                      >
-                                        <TrashIcon className='h-4 w-4 text-red-500' />
-                                      </button>
-                                    </div>
-                                  </td>
+                              {labelResults && labelResults.length > 0 ? (
+                                labelResults.map((item, idx) => (
+                                  <tr key={idx}>
+                                    <td className='px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900'>
+                                      {item.label}
+                                    </td>
+                                    <td className='px-4 py-2 whitespace-nowrap text-sm text-gray-500'>
+                                      {item.text}
+                                    </td>
+                                    <td className='px-4 py-2 whitespace-nowrap text-sm text-gray-500'>
+                                      {item.type}
+                                    </td>
+                                  </tr>
+                                ))
+                              ) : (
+                                <tr>
+                                  <td colSpan={3} className="text-center py-4 text-gray-400">No data found.</td>
                                 </tr>
-                              ))}
+                              )}
                             </tbody>
                           </table>
                         </div>

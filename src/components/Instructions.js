@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const Instructions = ({handleExportAll,viewAllDocument,displayListofDocuments, templateId}) => { 
+const Instructions = ({ handleExportAll, viewAllDocument, displayListofDocuments, templateId, projectId }) => {
   const [highlights, setHighlights] = useState([]);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = useParams();
+  const urlTemplateId = params.templateId || params.id;
+
   useEffect(() => {
     if (templateId) {
       axios.get(`http://localhost:7000/api/highlights/template/${templateId}`)
@@ -14,6 +22,73 @@ const Instructions = ({handleExportAll,viewAllDocument,displayListofDocuments, t
         .catch(() => setHighlights([]));
     }
   }, [templateId]);
+
+  const handleProceed = async (e) => {
+    e.preventDefault();
+    if (!projectId) {
+      toast.error("Please select a project");
+      return;
+    }
+    if (!templateId) {
+      toast.error("Please select a template");
+      return;
+    }
+    try {
+      const response = await axios.get(`http://localhost:7000/api/project/${projectId}/templates/${templateId}`);
+      if (!response.ok) throw new Error("Failed to fetch template data");
+      const data = response.data;
+      // Now open Instruction.js and pass the highlights/fields
+      // For example, if using React Router:
+      navigate('/instructions', { state: { highlights: data.highlights, templateId, projectId } });
+    } catch (error) {
+      toast.error("Failed to fetch template data.");
+      console.error(error);
+    }
+  };
+
+  const handleGenerate = async () => {
+    const id = templateId || urlTemplateId;
+    if (!id) {
+      toast.error("No template selected for generation.");
+      return;
+    }
+    try {
+      const response = await axios.get(
+        `http://localhost:7000/api/templates/${id}/download`,
+        { responseType: 'blob', withCredentials: true }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'generated-document.docx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Document downloaded!');
+    } catch (error) {
+      toast.error('Failed to download document.');
+      console.error(error);
+    }
+  };
+
+  const handlePreview = async () => {
+    const id = templateId || urlTemplateId;
+    if (!id) {
+      toast.error("No template selected for preview.");
+      return;
+    }
+    try {
+      // Fetch template data before navigating
+      const response = await axios.get(`http://localhost:7000/api/templates/${id}`);
+      const templateData = response.data;
+      // Optionally, pass templateData as state if needed
+      navigate(`/document/${id}`, { state: { templateData } });
+    } catch (error) {
+      toast.error('Failed to fetch template data for preview.');
+      console.error(error);
+    }
+  };
 
   return (
     <div className="col-span-1 bg-white rounded-lg shadow-md  pt-0 h-[80vh] flex flex-col justify-between">
@@ -40,19 +115,34 @@ const Instructions = ({handleExportAll,viewAllDocument,displayListofDocuments, t
             ))}
           </ul>
         ) : (
-          <div className="mb-4 text-gray-500">No highlights found for this template.</div>
+          <div className="mb-4 text-gray-500"></div>
         )}
         <ul className="list-disc pl-5 space-y-2 flex-grow">
-          <li>Please click on the + sign to add more columns/rows to the tables.</li>
-          <li>Variable names can be edited by double-clicking on the name. (The allotted space will remain unchanged)</li>
-          <li>Click on Generate button below to get the documents prepared using your standard format.</li>
-          <li>The documents can be auto formatted in the preview window.</li>
+         
         </ul>
       </div>
       <div className="mt-4 space-y-2 p-6">
-        <button id="generateBtn" className="w-full bg-blue-600 text-white py-2 rounded rounded-lg"  onClick={handleExportAll} >Generate</button>
-        <button id="exportBtn" className="w-full bg-gray-300 text-gray-700 py-2 rounded rounded-lg"  onClick={viewAllDocument} >Preview All</button>
-        <button id="exportBtn" className="w-full bg-gray-300 text-gray-700 py-2 rounded rounded-lg"  onClick={displayListofDocuments} >Summary</button>
+        <button
+          type="button"
+          onClick={handleGenerate}
+          className="bg-indigo-500 hover:bg-blue-700 text-white font-normal py-2 px-4 rounded"
+        >
+          Generate
+        </button>
+        <button
+          type="button"
+          className="w-full bg-gray-300 text-gray-700 py-2 rounded rounded-lg"
+          onClick={handlePreview}
+        >
+          Preview
+        </button>
+        <button
+          type="button"
+          className="w-full bg-gray-300 text-gray-700 py-2 rounded rounded-lg"
+          onClick={displayListofDocuments}
+        >
+          Summary
+        </button>
       </div>
     </div>
   );

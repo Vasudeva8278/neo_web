@@ -21,7 +21,7 @@ function DocumentContainer() {
         const data = response?.documents;
         setDocuments(data);
       } catch (error) {
-        console.error("Failed to fetch documents", error);
+        console.error("Failed to fetch documents vvvv", error);
       }
     };
 

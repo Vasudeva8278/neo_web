@@ -10,6 +10,20 @@ import { ProjectContext } from "../context/ProjectContext";
 import { fetchDocumentsWithTemplateNames } from '../redux/slice/documentSlice';
 import { getDocumentsWithTemplateNames } from '../services/documentApi';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+const fetchProjectTemplateDocument = async (projectId, templateId) => {
+  try {
+    const response = await fetch(
+      `http://localhost:7000/api/project/${projectId}/templates/${templateId}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch document vasudev");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching project template document:", error);
+    return null;
+  }
+};
 
 const GenerateDocument = ({ onClose, value, hasProject }) => {
   const navigate = useNavigate();
@@ -22,6 +36,7 @@ const GenerateDocument = ({ onClose, value, hasProject }) => {
   const { documents, status: documentStatus, error: documentError } = useSelector(state => state.documents);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState(projectId || '');
+  const [projectTemplateDoc, setProjectTemplateDoc] = useState(null);
 
   console.log('projectId:', projectId, 'value:', value);
 
@@ -58,6 +73,16 @@ const GenerateDocument = ({ onClose, value, hasProject }) => {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (projectId && templateId) {
+      fetchProjectTemplateDocument(projectId, templateId).then((data) => {
+        setProjectTemplateDoc(data);
+      });
+    } else {
+      setProjectTemplateDoc(null);
+    }
+  }, [projectId, templateId]);
+
   const handleTemplateChange = (e) => {
     setTemplateId(e.target.value);
   };
@@ -85,7 +110,7 @@ const GenerateDocument = ({ onClose, value, hasProject }) => {
       toast.error("Please select a template to preview");
       return;
     }
-    navigate(`/document/${templateId}`);
+    navigate(`/highlight/${templateId}`);
   };
 
   console.log("All templates:", templates);

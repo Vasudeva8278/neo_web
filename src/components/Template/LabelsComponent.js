@@ -1,11 +1,20 @@
 import React, { useState } from "react";
-import { getExistingLabelsInProject } from "../../services/projectApi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function generateHighlightId() {
   return 'highlight-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
 }
+
+const transformHighlight = (highlight) => ({
+  labels: [
+    {
+      label: highlight.label,
+      value: highlight.text
+    }
+  ],
+  type: highlight.type || "text"
+});
 
 const LabelsComponent = ({
   newHighlight,
@@ -56,7 +65,9 @@ const LabelsComponent = ({
     if (newHighlight.label && newHighlight.text && newHighlight.id) {
       setIsSaving(true);
       try {
-        await onSave(newHighlight);
+        // Transform highlight to backend format
+        const transformed = transformHighlight(newHighlight);
+        await onSave(transformed);
         toast.success("Saved successfully!");
       } catch (e) {
         toast.error("Failed to save. Please try again.");

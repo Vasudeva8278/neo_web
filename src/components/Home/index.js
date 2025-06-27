@@ -16,10 +16,9 @@ import Neo from "../Neo";
 import DocxToTextConverter from "../Template/DocxToTextConverter";
 import DocumentView from "../Documents/DocumentView";
 import DocumentContainer from "../Documents/DocumentContainer";
-import ExportComponent from "../Documents/ExportComponent";
+import ExportComponent from "../../pages/ExportDocument";
 import ViewTemplatesHighlights from "../Template/ViewTemplatesHighlights";
 import ProfileSettings from "../Profile/ProfileSettings";
-import ExportDocument from "../../pages/ExportDocument";
 
 const Home = () => {
   const [isNavigationVisible, setIsNavigationVisible] = useState(true);
@@ -49,8 +48,7 @@ const Home = () => {
                 {/* Documents */}
                 <Route path="/docview/:id" element={<DocumentView />} />
                 <Route path="/docviewall/:id" element={<DocumentContainer />} />
-                <Route path="/export/:projectId/:id" element={<ExportComponent />} />
-                <Route path="/export/:templateId" element={<ExportDocument />} />
+                <Route path="/export/:id" element={<ExportComponent />} />
 
                 {/* Landing Page */}
                 <Route path="/Home" element={<LandingPage />} />

@@ -39,7 +39,7 @@ const NeoModal = ({ isOpen, onClose, children, templates = [], selectedTemplate,
               </div>
             </div>
           ) : templates && (
-            <div className="mb-6 text-gray-400">No templates found for this project.</div>
+            <div></div>
           )}
           {children}
         </div>

@@ -10,6 +10,7 @@ import {
   FaRedo,
   FaPalette,
 } from "react-icons/fa";
+import axios from "axios";
 
 const StyleComponents = ({ content, handleSave, handleCancel }) => {
   const [activeFormats, setActiveFormats] = useState({
@@ -29,6 +30,34 @@ const StyleComponents = ({ content, handleSave, handleCancel }) => {
     setFontColor(color);
     format("foreColor", color);
   };
+
+  const getTemplateIdFromHash = () => {
+    const match = window.location.hash.match(/#\/document\/([a-zA-Z0-9]+)/);
+    return match ? match[1] : undefined;
+  };
+
+
+ 
+// ...inside your component...
+
+const handleSaveClick = async () => {
+  const templateId = getTemplateIdFromHash();
+  if (!templateId) {
+    alert("No templateId found in URL!");
+    return;
+  }
+  try {
+    const updatedContent = content.current ? content.current.innerHTML : "";
+    await axios.put(
+      `http://localhost:7000/api/templates/update-content/${templateId}`,
+      { content: updatedContent }
+    );
+    alert("Template content updated successfully!");
+  } catch (error) {
+    alert("Failed to update template content.")
+    console.error(error);
+  }
+};
 
   const sizeMap = {
     1: "8pt",
@@ -342,7 +371,7 @@ const StyleComponents = ({ content, handleSave, handleCancel }) => {
       <div className="flex justify-between mt-4">
         {/* Save and Cancel Buttons */}
         <button
-          onClick={handleSave}
+          onClick={handleSaveClick}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Save Changes

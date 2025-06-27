@@ -200,9 +200,7 @@ const Card = ({ docObj, documentId, name, thumbnail, content, handleDelete, hand
         <h3 className="text-lg font-semibold text-gray-900 mb-2 truncate">
           {name}
         </h3>
-        <p className="text-sm text-gray-500">
-          {docObj?.documentCount || '0'} Documents
-        </p>
+        
         <p className="text-xs text-gray-400 mt-1">
           Last updated: {docObj?.lastUpdated || '6/15/2025'}
         </p>

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 // import SearchHeader from "../components/SearchHeader";
-import { getAllClients, createClient } from "../services/clientsApi";
+import { getAllClients, createClient, createClientWithDocuments } from "../services/clientsApi";
 // import folder from "../assets/folder.jpg";
 import { useNavigate } from "react-router-dom";
 import { FaUserPlus, FaFolder, FaEllipsisV, FaSearch } from "react-icons/fa";
@@ -57,6 +57,17 @@ const Clients = () => {
       setAddClientError("Project selection is required.");
       return;
     }
+    const userId = localStorage.getItem("userId");
+    const payload = {
+      fileName: "...",
+      content: "...",
+      templateId: "...",
+      projectId: "...",
+      variables: [],
+      thumbnail: "...",
+      locationUrl: "...",
+      createdBy: userId,
+    };
     navigate('/viewAllHighlights', {
       state: {
         project: JSON.parse(selectedProject),
@@ -185,8 +196,9 @@ const Clients = () => {
       </div>
 
       
+    
       <NeoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <div className="p-6 bg-white rounded-lg shadow-lg max-w-md w-full mx-auto">
+        <div className="p-6 bg-white rounded-lg shadow-lg max-w-md w-full mx-auto z-50 relative">
           <h2 className="text-xl font-semibold text-gray-800 mb-6">
             Add New Client
           </h2>

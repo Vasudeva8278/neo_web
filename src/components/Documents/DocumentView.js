@@ -616,7 +616,13 @@ function DocumentView(props) {
             </div>
           )}
           <div className='flex items-center justify-between border-b pb-2 mb-4'>
-            <h1 className='text-2xl font-bold text-gray-800'>{fileName}</h1>
+            <div>
+              <h1 className='text-2xl font-bold text-gray-800'>{fileName}</h1>
+              <div className='text-gray-500 text-sm'>Document ID: {id}</div>
+              {templateId && (
+                <div className='text-gray-500 text-sm'>Template ID: {templateId}</div>
+              )}
+            </div>
             <div className='flex items-center space-x-2'>
               <button
                 onClick={handleEdit}

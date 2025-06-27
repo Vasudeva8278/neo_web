@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { getTemplatesAndHighlightsWithinProject } from "../../services/projectApi";
-import { createDocsMultipleTemplates } from "../../services/documentApi";
+import { createDocsMultipleTemplates, createDocument } from "../../services/documentApi";
 import { useNavigate, useLocation } from "react-router-dom";
 import imgIcon from "../../Assets/imgIcon.jpg";
 import tableIcon from "../../Assets/tableIcon.png";
 import ClientHighlightsModal from "../Client/ClientHighlightsModal";
 import NeoModal from "../NeoModal";
-import { getClientDetails, createClient } from "../../services/clientsApi";
+import { getClientDetails, createClient, createClientWithDocuments } from "../../services/clientsApi";
+import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ViewTemplatesHighlights = () => {
   const location = useLocation();
@@ -32,6 +35,9 @@ const ViewTemplatesHighlights = () => {
   const [preSelected, setPreSelected] = useState(clientTemplateIds || []);
   const [clientDetails, setClientDetails] = useState("");
   const clientNameFromState = location.state?.clientName;
+  const [isDocSuccessModalOpen, setIsDocSuccessModalOpen] = useState(false);
+  const [createdDocInfo, setCreatedDocInfo] = useState(null);
+  const [clientName, setClientName] = useState(clientNameFromState || "");
 
   useEffect(() => {
     const fetchClientDetails = async (clientId) => {
@@ -61,52 +67,35 @@ const ViewTemplatesHighlights = () => {
   };
 
   const handleSubmit = async () => {
-    setError("");
-    setTempError("");
-    let clientIdToUse = clientId;
-    let createdClient = null;
-    if (!client && clientNameFromState) {
-      // Create the client first
-      try {
-        const clientRes = await createClient({ name: clientNameFromState });
-        createdClient = clientRes.data;
-        clientIdToUse = createdClient._id;
-      } catch (err) {
-        setError("Failed to create client: " + (err.message || "Unknown error"));
-        return;
-      }
-    }
-    if (!documentName) {
-      setError("Please enter name for document");
-      return;
-    }
-    const updatedSelectedTemplates = templatesData
-      .filter((template) => selectedTemplates.includes(template._id))
-      .map((template) => ({
-        ...template,
-        docName: documentName,
-        highlights: template.highlights.map((highlight) => {
-          if (highlights[highlight.label]) {
-            return { ...highlight, text: highlights[highlight.label].text };
-          }
-          return highlight;
-        }),
-        clientId: clientIdToUse,
-      }));
-    if (!updatedSelectedTemplates || updatedSelectedTemplates.length === 0) {
-      setTempError("Please select at least 1 template");
-      return;
-    }
     try {
-      const result = await createDocsMultipleTemplates(updatedSelectedTemplates);
-      if (result.success) {
-        alert(result.message);
-        navigate(`/projects/${projectData._id}`, {
-          state: { data: projectData },
-        });
-      }
+      // 1. Create the document(s) using the correct endpoint
+      const highlightsArray = Object.values(highlights).map(h => ({
+        labels: [{ label: h.label, value: h.text }],
+        type: h.type || "text",
+        content: h.content || ""
+      }));
+      console.log("Posting highlights:", highlightsArray);
+      const docPayload = {
+        fileName: documentName,
+        content: selectedTemplates.map(templateId => {
+          const template = templatesData.find(t => t._id === templateId);
+          return template.content;
+        }).join("\n"),
+        templateId: selectedTemplates[0],
+        projectId: projectData._id,
+        variables: [
+          // REMOVE static values!
+        ],
+        thumbnail: templatesData.find(t => t._id === selectedTemplates[0])?.thumbnail,
+        locationUrl: templatesData.find(t => t._id === selectedTemplates[0])?.locationUrl,
+        highlights: highlightsArray
+      };
+      const docRes = await createDocsMultipleTemplates([docPayload]);
+      const createdDoc = docRes.documents[0];
+      setCreatedDocInfo(createdDoc);
+      setIsDocSuccessModalOpen(true); // Show modal
     } catch (error) {
-      setError("Failed to create documents: " + (error.message || "Unknown error"));
+      toast.error("Error creating document: " + (error?.response?.data?.message || "Server error"));
     }
   };
 
@@ -306,6 +295,36 @@ const ViewTemplatesHighlights = () => {
     );
   };
 
+  const handleCreateClientAfterDoc = async () => {
+    let clientPayload;
+    try {
+      const { templateId, _id: documentId } = createdDocInfo;
+      clientPayload = {
+        name: clientName,
+        documents: [{ templateId, documentId }]
+      };
+      console.log("Client payload:", clientPayload);
+      await createClientWithDocuments(clientPayload);
+      toast.success("Client created successfully!");
+      setIsDocSuccessModalOpen(false);
+      navigate(`/projects/${projectData._id}`, {
+        state: { data: projectData },
+      });
+    } catch (error) {
+      console.log("Client creation error:", error, clientPayload);
+      toast.error("Error creating client: " + (error?.response?.data?.message || "Server error"));
+    }
+  };
+
+  const handleCreateClient = (projectData) => {
+    navigate('/viewAllHighlights', {
+      state: { 
+        project: projectData,
+        clientName: projectData.projectName // Pass project name as client name
+      },
+    });
+  };
+
   return (
     <div className='bg-gray-100 p-6'>
       <div className='flex gap-4 mb-4'>
@@ -409,6 +428,22 @@ const ViewTemplatesHighlights = () => {
           </div>
         </div>
       </NeoModal>
+      <NeoModal isOpen={isDocSuccessModalOpen} onClose={() => setIsDocSuccessModalOpen(false)}>
+        <div className='bg-white p-6 rounded-lg max-w-sm mx-auto'>
+          <p className='text-gray-800 text-lg font-semibold mb-4'>
+            Document created successfully!
+          </p>
+          <div className='flex justify-center'>
+            <button
+              className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded'
+              onClick={handleCreateClientAfterDoc}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </NeoModal>
+      <ToastContainer />
     </div>
   );
 };
